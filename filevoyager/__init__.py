@@ -1,0 +1,1 @@
+"""FileVoyager desktop file browser."""

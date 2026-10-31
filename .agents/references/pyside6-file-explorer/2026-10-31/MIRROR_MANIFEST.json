@@ -1,0 +1,262 @@
+{
+  "bundle": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\pyside6-file-explorer\\2026-10-31",
+  "requested_urls": [
+    "https://doc.qt.io/qtforpython-6/index.html",
+    "https://doc.qt.io/qtforpython-6/gettingstarted.html",
+    "https://doc.qt.io/qtforpython-6/release_notes/index.html",
+    "https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QFileSystemModel.html",
+    "https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QTreeView.html",
+    "https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QListView.html",
+    "https://doc.qt.io/qtforpython-6/PySide6/QtCore/QSortFilterProxyModel.html",
+    "https://doc.qt.io/qtforpython-6/PySide6/QtCore/QItemSelectionModel.html",
+    "https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QStyledItemDelegate.html",
+    "https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QAbstractItemView.html",
+    "https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QHeaderView.html",
+    "https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QFileIconProvider.html",
+    "https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QMainWindow.html",
+    "https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QSplitter.html",
+    "https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QStackedWidget.html",
+    "https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QToolBar.html",
+    "https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QMenu.html",
+    "https://doc.qt.io/qtforpython-6/PySide6/QtGui/QAction.html",
+    "https://doc.qt.io/qtforpython-6/PySide6/QtGui/QActionGroup.html",
+    "https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QLineEdit.html",
+    "https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QStatusBar.html",
+    "https://doc.qt.io/qtforpython-6/PySide6/QtCore/QDir.html",
+    "https://doc.qt.io/qtforpython-6/PySide6/QtCore/QSettings.html",
+    "https://doc.qt.io/qtforpython-6/overviews/qtwidgets-model-view-programming.html",
+    "https://doc.qt.io/qtforpython-6/examples/example_widgets_itemviews_dirview.html"
+  ],
+  "requested_domains": [],
+  "llms": [
+    {
+      "domain": "doc.qt.io",
+      "llms_url": "https://doc.qt.io/llms.txt",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\pyside6-file-explorer\\2026-10-31\\doc.qt.io\\llms.md",
+      "status": "written",
+      "discovered_urls": [
+        "https://doc.qt.io/qt-llms.txt",
+        "https://doc.qt.io/qt/"
+      ]
+    }
+  ],
+  "mirrors": [
+    {
+      "url": "https://doc.qt.io/qtforpython-6/index.html",
+      "final_url": "https://doc.qt.io/qtforpython-6/index.html",
+      "content_type": "text/html",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\pyside6-file-explorer\\2026-10-31\\doc.qt.io\\qtforpython-6\\index.md",
+      "status": "written"
+    },
+    {
+      "url": "https://doc.qt.io/qtforpython-6/gettingstarted.html",
+      "final_url": "https://doc.qt.io/qtforpython-6/gettingstarted.html",
+      "content_type": "text/html",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\pyside6-file-explorer\\2026-10-31\\doc.qt.io\\qtforpython-6\\gettingstarted.md",
+      "status": "written"
+    },
+    {
+      "url": "https://doc.qt.io/qtforpython-6/release_notes/index.html",
+      "final_url": "https://doc.qt.io/qtforpython-6/release_notes/index.html",
+      "content_type": "text/html",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\pyside6-file-explorer\\2026-10-31\\doc.qt.io\\qtforpython-6\\release_notes\\index.md",
+      "status": "written"
+    },
+    {
+      "url": "https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QFileSystemModel.html",
+      "final_url": "https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QFileSystemModel.html",
+      "content_type": "text/html",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\pyside6-file-explorer\\2026-10-31\\doc.qt.io\\qtforpython-6\\PySide6\\QtWidgets\\QFileSystemModel.md",
+      "status": "written"
+    },
+    {
+      "url": "https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QTreeView.html",
+      "final_url": "https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QTreeView.html",
+      "content_type": "text/html",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\pyside6-file-explorer\\2026-10-31\\doc.qt.io\\qtforpython-6\\PySide6\\QtWidgets\\QTreeView.md",
+      "status": "written"
+    },
+    {
+      "url": "https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QListView.html",
+      "final_url": "https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QListView.html",
+      "content_type": "text/html",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\pyside6-file-explorer\\2026-10-31\\doc.qt.io\\qtforpython-6\\PySide6\\QtWidgets\\QListView.md",
+      "status": "written"
+    },
+    {
+      "url": "https://doc.qt.io/qtforpython-6/PySide6/QtCore/QSortFilterProxyModel.html",
+      "final_url": "https://doc.qt.io/qtforpython-6/PySide6/QtCore/QSortFilterProxyModel.html",
+      "content_type": "text/html",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\pyside6-file-explorer\\2026-10-31\\doc.qt.io\\qtforpython-6\\PySide6\\QtCore\\QSortFilterProxyModel.md",
+      "status": "written"
+    },
+    {
+      "url": "https://doc.qt.io/qtforpython-6/PySide6/QtCore/QItemSelectionModel.html",
+      "final_url": "https://doc.qt.io/qtforpython-6/PySide6/QtCore/QItemSelectionModel.html",
+      "content_type": "text/html",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\pyside6-file-explorer\\2026-10-31\\doc.qt.io\\qtforpython-6\\PySide6\\QtCore\\QItemSelectionModel.md",
+      "status": "written"
+    },
+    {
+      "url": "https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QStyledItemDelegate.html",
+      "final_url": "https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QStyledItemDelegate.html",
+      "content_type": "text/html",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\pyside6-file-explorer\\2026-10-31\\doc.qt.io\\qtforpython-6\\PySide6\\QtWidgets\\QStyledItemDelegate.md",
+      "status": "written"
+    },
+    {
+      "url": "https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QAbstractItemView.html",
+      "final_url": "https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QAbstractItemView.html",
+      "content_type": "text/html",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\pyside6-file-explorer\\2026-10-31\\doc.qt.io\\qtforpython-6\\PySide6\\QtWidgets\\QAbstractItemView.md",
+      "status": "written"
+    },
+    {
+      "url": "https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QHeaderView.html",
+      "final_url": "https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QHeaderView.html",
+      "content_type": "text/html",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\pyside6-file-explorer\\2026-10-31\\doc.qt.io\\qtforpython-6\\PySide6\\QtWidgets\\QHeaderView.md",
+      "status": "written"
+    },
+    {
+      "url": "https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QFileIconProvider.html",
+      "final_url": "https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QFileIconProvider.html",
+      "content_type": "text/html",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\pyside6-file-explorer\\2026-10-31\\doc.qt.io\\qtforpython-6\\PySide6\\QtWidgets\\QFileIconProvider.md",
+      "status": "written"
+    },
+    {
+      "url": "https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QMainWindow.html",
+      "final_url": "https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QMainWindow.html",
+      "content_type": "text/html",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\pyside6-file-explorer\\2026-10-31\\doc.qt.io\\qtforpython-6\\PySide6\\QtWidgets\\QMainWindow.md",
+      "status": "written"
+    },
+    {
+      "url": "https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QSplitter.html",
+      "final_url": "https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QSplitter.html",
+      "content_type": "text/html",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\pyside6-file-explorer\\2026-10-31\\doc.qt.io\\qtforpython-6\\PySide6\\QtWidgets\\QSplitter.md",
+      "status": "written"
+    },
+    {
+      "url": "https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QStackedWidget.html",
+      "final_url": "https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QStackedWidget.html",
+      "content_type": "text/html",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\pyside6-file-explorer\\2026-10-31\\doc.qt.io\\qtforpython-6\\PySide6\\QtWidgets\\QStackedWidget.md",
+      "status": "written"
+    },
+    {
+      "url": "https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QToolBar.html",
+      "final_url": "https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QToolBar.html",
+      "content_type": "text/html",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\pyside6-file-explorer\\2026-10-31\\doc.qt.io\\qtforpython-6\\PySide6\\QtWidgets\\QToolBar.md",
+      "status": "written"
+    },
+    {
+      "url": "https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QMenu.html",
+      "final_url": "https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QMenu.html",
+      "content_type": "text/html",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\pyside6-file-explorer\\2026-10-31\\doc.qt.io\\qtforpython-6\\PySide6\\QtWidgets\\QMenu.md",
+      "status": "written"
+    },
+    {
+      "url": "https://doc.qt.io/qtforpython-6/PySide6/QtGui/QAction.html",
+      "final_url": "https://doc.qt.io/qtforpython-6/PySide6/QtGui/QAction.html",
+      "content_type": "text/html",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\pyside6-file-explorer\\2026-10-31\\doc.qt.io\\qtforpython-6\\PySide6\\QtGui\\QAction.md",
+      "status": "written"
+    },
+    {
+      "url": "https://doc.qt.io/qtforpython-6/PySide6/QtGui/QActionGroup.html",
+      "final_url": "https://doc.qt.io/qtforpython-6/PySide6/QtGui/QActionGroup.html",
+      "content_type": "text/html",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\pyside6-file-explorer\\2026-10-31\\doc.qt.io\\qtforpython-6\\PySide6\\QtGui\\QActionGroup.md",
+      "status": "written"
+    },
+    {
+      "url": "https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QLineEdit.html",
+      "final_url": "https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QLineEdit.html",
+      "content_type": "text/html",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\pyside6-file-explorer\\2026-10-31\\doc.qt.io\\qtforpython-6\\PySide6\\QtWidgets\\QLineEdit.md",
+      "status": "written"
+    },
+    {
+      "url": "https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QStatusBar.html",
+      "final_url": "https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QStatusBar.html",
+      "content_type": "text/html",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\pyside6-file-explorer\\2026-10-31\\doc.qt.io\\qtforpython-6\\PySide6\\QtWidgets\\QStatusBar.md",
+      "status": "written"
+    },
+    {
+      "url": "https://doc.qt.io/qtforpython-6/PySide6/QtCore/QDir.html",
+      "final_url": "https://doc.qt.io/qtforpython-6/PySide6/QtCore/QDir.html",
+      "content_type": "text/html",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\pyside6-file-explorer\\2026-10-31\\doc.qt.io\\qtforpython-6\\PySide6\\QtCore\\QDir.md",
+      "status": "written"
+    },
+    {
+      "url": "https://doc.qt.io/qtforpython-6/PySide6/QtCore/QSettings.html",
+      "final_url": "https://doc.qt.io/qtforpython-6/PySide6/QtCore/QSettings.html",
+      "content_type": "text/html",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\pyside6-file-explorer\\2026-10-31\\doc.qt.io\\qtforpython-6\\PySide6\\QtCore\\QSettings.md",
+      "status": "written"
+    },
+    {
+      "url": "https://doc.qt.io/qtforpython-6/overviews/qtwidgets-model-view-programming.html",
+      "final_url": "https://doc.qt.io/qtforpython-6/overviews/qtwidgets-model-view-programming.html",
+      "content_type": "text/html",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\pyside6-file-explorer\\2026-10-31\\doc.qt.io\\qtforpython-6\\overviews\\qtwidgets-model-view-programming.md",
+      "status": "written"
+    },
+    {
+      "url": "https://doc.qt.io/qtforpython-6/examples/example_widgets_itemviews_dirview.html",
+      "final_url": "https://doc.qt.io/qtforpython-6/examples/example_widgets_itemviews_dirview.html",
+      "content_type": "text/html",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\pyside6-file-explorer\\2026-10-31\\doc.qt.io\\qtforpython-6\\examples\\example_widgets_itemviews_dirview.md",
+      "status": "written"
+    },
+    {
+      "url": "https://doc.qt.io/qt-llms.txt",
+      "final_url": "https://doc.qt.io/qt-llms.txt",
+      "content_type": "text/plain",
+      "origin": "llms.txt",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\pyside6-file-explorer\\2026-10-31\\doc.qt.io\\qt-llms.md",
+      "status": "written"
+    },
+    {
+      "url": "https://doc.qt.io/qt/",
+      "final_url": "https://doc.qt.io/qt-6/",
+      "content_type": "text/html",
+      "origin": "llms.txt",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\pyside6-file-explorer\\2026-10-31\\doc.qt.io\\qt-6\\index.md",
+      "status": "written"
+    }
+  ],
+  "errors": []
+}

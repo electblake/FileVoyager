@@ -1,0 +1,64 @@
+{
+  "bundle": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\pyside6-file-explorer\\2026-10-31",
+  "requested_urls": [
+    "https://doc.qt.io/qt-6/qfilesystemmodel.html",
+    "https://doc.qt.io/qt-6/qtreeview.html",
+    "https://doc.qt.io/qt-6/qlistview.html",
+    "https://doc.qt.io/qt-6/qsortfilterproxymodel.html",
+    "https://doc.qt.io/qt-6/qstyleditemdelegate.html",
+    "https://doc.qt.io/qtforpython-6/release_notes/pyside6_release_notes.html"
+  ],
+  "requested_domains": [],
+  "llms": [],
+  "mirrors": [
+    {
+      "url": "https://doc.qt.io/qt-6/qfilesystemmodel.html",
+      "final_url": "https://doc.qt.io/qt-6/qfilesystemmodel.html",
+      "content_type": "text/html",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\pyside6-file-explorer\\2026-10-31\\doc.qt.io\\qt-6\\qfilesystemmodel.md",
+      "status": "written"
+    },
+    {
+      "url": "https://doc.qt.io/qt-6/qtreeview.html",
+      "final_url": "https://doc.qt.io/qt-6/qtreeview.html",
+      "content_type": "text/html",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\pyside6-file-explorer\\2026-10-31\\doc.qt.io\\qt-6\\qtreeview.md",
+      "status": "written"
+    },
+    {
+      "url": "https://doc.qt.io/qt-6/qlistview.html",
+      "final_url": "https://doc.qt.io/qt-6/qlistview.html",
+      "content_type": "text/html",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\pyside6-file-explorer\\2026-10-31\\doc.qt.io\\qt-6\\qlistview.md",
+      "status": "written"
+    },
+    {
+      "url": "https://doc.qt.io/qt-6/qsortfilterproxymodel.html",
+      "final_url": "https://doc.qt.io/qt-6/qsortfilterproxymodel.html",
+      "content_type": "text/html",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\pyside6-file-explorer\\2026-10-31\\doc.qt.io\\qt-6\\qsortfilterproxymodel.md",
+      "status": "written"
+    },
+    {
+      "url": "https://doc.qt.io/qt-6/qstyleditemdelegate.html",
+      "final_url": "https://doc.qt.io/qt-6/qstyleditemdelegate.html",
+      "content_type": "text/html",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\pyside6-file-explorer\\2026-10-31\\doc.qt.io\\qt-6\\qstyleditemdelegate.md",
+      "status": "written"
+    },
+    {
+      "url": "https://doc.qt.io/qtforpython-6/release_notes/pyside6_release_notes.html",
+      "final_url": "https://doc.qt.io/qtforpython-6/release_notes/pyside6_release_notes.html",
+      "content_type": "text/html",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\pyside6-file-explorer\\2026-10-31\\doc.qt.io\\qtforpython-6\\release_notes\\pyside6_release_notes.md",
+      "status": "written"
+    }
+  ],
+  "errors": []
+}

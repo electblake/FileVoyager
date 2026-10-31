@@ -1,0 +1,34 @@
+**The strongest fit is Qt’s built-in model/view stack: `QFileSystemModel` + `QTreeView` + `QListView`.** These already provide filesystem browsing and file-manager-style icon layouts. The remaining work is connecting your thumbnails and wiring the View/Sort actions. [Qt 6.12.0](https://doc.qt.io/qt-6/qfilesystemmodel.html?utm_source=chatgpt.com)
+
+## Built-in PySide6 components
+
+| Explorer functionality | Component | Functionality already provided |
+|---|---|---|
+| **Filesystem data and directory loading** | [QFileSystemModel](https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QFileSystemModel.html) | Directory hierarchy, file metadata, filtering and sorting. Populates directories in a background thread and watches for filesystem changes. [Qt 6.12.0](https://doc.qt.io/qt-6/qfilesystemmodel.html?utm_source=chatgpt.com) |
+| **Expandable folder tree and Details view** | [QTreeView](https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QTreeView.html) | Expand/collapse, multiple columns, sortable headers, column visibility and resizing. Use it with `QFileSystemModel` for the folder tree or a directory’s detailed file listing. [Qt 6.12.0](https://doc.qt.io/qt-6/qtreeview.html?utm_source=chatgpt.com) |
+| **Thumbnail grid and compact list** | [QListView](https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QListView.html) | `IconMode` provides the file-manager grid; `ListMode` provides the compact list. Supports adjustable image/cell sizes, wrapping, reflow on resize and selection rectangles. `Batched` layout keeps the view interactive while additional items are laid out. [Qt for Python](https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QListView.html?utm_source=chatgpt.com) |
+| **Sorting and filtering** | [QSortFilterProxyModel](https://doc.qt.io/qtforpython-6/PySide6/QtCore/QSortFilterProxyModel.html) | Ascending/descending sorting, text/number/date comparisons, filtering and custom comparison functions. Suitable for sorting by analysis scores or classifications once those are exposed by your model. [Qt 6.12.0](https://doc.qt.io/qt-6/qsortfilterproxymodel.html?utm_source=chatgpt.com) |
+| **Preserve selection across grid/details views** | [QItemSelectionModel](https://doc.qt.io/qtforpython-6/overviews/qtwidgets-model-view-programming.html#sharing-selections-among-views) | Views using the same model can share a selection model, keeping selected files synchronized when switching layouts. [Qt for Python](https://doc.qt.io/qtforpython-6/overviews/qtwidgets-model-view-programming.html?utm_source=chatgpt.com) |
+
+**Explorer’s View and Sort menus still need application wiring:**
+
+- **Large/medium/small icons:** change the list view’s `iconSize` and `gridSize`.
+- **List/details:** switch between the configured list and details views.
+- **Sort by / ascending / descending:** call the filesystem or proxy model’s `sort(column, order)`.
+
+Those operations exist already; Qt does not assemble them into a complete Explorer menu for you. [Qt for Python](https://doc.qt.io/qtforpython-6/PySide6/QtWidgets/QListView.html?utm_source=chatgpt.com)
+
+## Open-source enhancements worth considering
+
+| Library / widget | License | What it adds | Fit for your application |
+|---|---|---|---|
+| [**pyside6-utils — `FileExplorerView`**](https://github.com/Woutah/pyside6-utils#fileexplorerview) | **LGPL-2.1** | Filesystem view with right-click operations, undo/redo, highlighted files and Qt Designer integration. Its `ExtendedSortFilterProxyModel` adds multiple-column sorting and custom filter functions. | **The closest verified reusable file-explorer enhancement.** Covers the file-tree side; it does not supply a thumbnail gallery or complete View/Sort controls. [GitHub](https://github.com/Woutah/pyside6-utils?utm_source=chatgpt.com) |
+| [**QExtraWidgets — `QFilterableTable`**](https://gpedrosobernardes.github.io/QExtraWidgets/) | **MIT** | Extends `QTableView` with Excel-style header filters, cascading filters, popup search and sorting. Works with custom models. | Useful for an advanced **Details/analysis-results view**. You supply the file model; it does not provide a directory tree or image grid. [gpedrosobernardes.github.io](https://gpedrosobernardes.github.io/QExtraWidgets/?utm_source=chatgpt.com) |
+
+`pyside6-utils`’ latest published release is **1.2.2 from August 2023**, so I would treat it as reusable code to evaluate against your installed PySide6 version, rather than assume current compatibility. [PyPI](https://pypi.org/project/pyside6-utils/?utm_source=chatgpt.com)
+
+I did **not** find a well-established, reusable PySide6 package that bundles the complete folder tree, sortable thumbnail grid, and Explorer-style View/Sort menus.
+
+## Connecting your existing Windows thumbnails
+
+Supply the retrieved thumbnail through the model’s **`Qt.ItemDataRole.DecorationRole`** as a `QImage`, `QPixmap` or `QIcon`. Qt’s default item delegate already renders those types in its views. Your Windows thumbnail-cache loader supplies the images; the Qt models and views handle browsing, selection, layout and sorting. [Qt 6.12.0](https://doc.qt.io/qt-6/qstyleditemdelegate.html?utm_source=chatgpt.com)

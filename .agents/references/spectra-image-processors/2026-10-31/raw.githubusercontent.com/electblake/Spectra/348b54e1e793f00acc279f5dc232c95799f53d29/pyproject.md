@@ -1,0 +1,45 @@
+<!--
+source: https://raw.githubusercontent.com/electblake/Spectra/348b54e1e793f00acc279f5dc232c95799f53d29/pyproject.toml
+retrieved: 2026-10-31T23:02:14.925324+00:00
+final_url: https://raw.githubusercontent.com/electblake/Spectra/348b54e1e793f00acc279f5dc232c95799f53d29/pyproject.toml
+content_type: text/plain
+-->
+
+```text
+[project]
+name = "spectra"
+version = "2.9.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12.10"
+dependencies = [
+    "numpy>=1.24.0",
+    "opencv-python>=5.0.0.93",
+    "pillow>=10.0.0",
+    "platformdirs>=4.11.0",
+    "pyside6>=6.8,<7",
+    "pyyaml>=6.0.3",
+    "scikit-learn>=1.3.0",
+    "scipy>=1.10.0",
+]
+
+[project.scripts]
+spectra = "app.ui.main_ui:main"
+
+[build-system]
+requires = ["setuptools>=77.0.3"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["app", "app.workers", "app.ui", "app.image_processors", "app.image_processors.features"]
+
+[tool.setuptools.package-data]
+app = ["../pyproject.toml", "../Spectra.ico"]
+
+[dependency-groups]
+dev = [
+    "pyinstaller>=6.0.0",
+    "pytest>=9.1.1",
+    "ruff>=0.16.1",
+]
+```

@@ -1,0 +1,1 @@
+python package we can use to read thumbnails [https://github.com/enthought/comtypes](https://github.com/enthought/comtypes)

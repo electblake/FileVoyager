@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "filevoyager"
+version = "0.1.0"
+description = "A performance-focused PySide6 file browser for Windows"
+requires-python = ">=3.12"
+dependencies = [
+    "PySide6==6.12.0",
+    "comtypes==1.4.17",
+    "numpy>=1.24.0",
+    "pillow>=10.0.0",
+    "platformdirs>=4.14.2",
+]
+
+[project.scripts]
+filevoyager = "filevoyager.__main__:main"
+
+[tool.setuptools.packages.find]
+include = ["filevoyager*"]
+
+[tool.setuptools.package-data]
+"filevoyager.image_processors" = ["LICENSE", "README.md"]

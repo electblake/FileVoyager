@@ -1,0 +1,168 @@
+{
+  "bundle": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\spectra-image-processors\\2026-10-31",
+  "requested_urls": [
+    "https://github.com/electblake/Spectra/tree/main/app/image_processors",
+    "https://raw.githubusercontent.com/electblake/Spectra/348b54e1e793f00acc279f5dc232c95799f53d29/app/image_processors/__init__.py",
+    "https://raw.githubusercontent.com/electblake/Spectra/348b54e1e793f00acc279f5dc232c95799f53d29/app/image_processors/features/__init__.py",
+    "https://raw.githubusercontent.com/electblake/Spectra/348b54e1e793f00acc279f5dc232c95799f53d29/app/image_processors/features/brightness_contrast.py",
+    "https://raw.githubusercontent.com/electblake/Spectra/348b54e1e793f00acc279f5dc232c95799f53d29/app/image_processors/features/geometry.py",
+    "https://raw.githubusercontent.com/electblake/Spectra/348b54e1e793f00acc279f5dc232c95799f53d29/app/image_processors/features/histograms.py",
+    "https://raw.githubusercontent.com/electblake/Spectra/348b54e1e793f00acc279f5dc232c95799f53d29/app/image_processors/features/spatial_color.py",
+    "https://raw.githubusercontent.com/electblake/Spectra/348b54e1e793f00acc279f5dc232c95799f53d29/app/image_processors/features/texture.py",
+    "https://raw.githubusercontent.com/electblake/Spectra/348b54e1e793f00acc279f5dc232c95799f53d29/app/image_processors/features_extraction.py",
+    "https://raw.githubusercontent.com/electblake/Spectra/348b54e1e793f00acc279f5dc232c95799f53d29/app/config.py",
+    "https://raw.githubusercontent.com/electblake/Spectra/348b54e1e793f00acc279f5dc232c95799f53d29/README.md",
+    "https://raw.githubusercontent.com/electblake/Spectra/348b54e1e793f00acc279f5dc232c95799f53d29/pyproject.toml",
+    "https://raw.githubusercontent.com/electblake/Spectra/348b54e1e793f00acc279f5dc232c95799f53d29/requirements.txt",
+    "https://raw.githubusercontent.com/electblake/Spectra/348b54e1e793f00acc279f5dc232c95799f53d29/LICENSE",
+    "https://raw.githubusercontent.com/electblake/Spectra/348b54e1e793f00acc279f5dc232c95799f53d29/tests/test_image_features.py"
+  ],
+  "requested_domains": [],
+  "llms": [
+    {
+      "domain": "github.com",
+      "llms_url": "https://github.com/llms.txt",
+      "saved_to": ".agents\\references\\spectra-image-processors\\2026-10-31\\github.com\\llms.md",
+      "status": "written",
+      "discovered_urls": [
+        "https://github.com/github/github-mcp-server"
+      ]
+    }
+  ],
+  "mirrors": [
+    {
+      "url": "https://github.com/electblake/Spectra/tree/main/app/image_processors",
+      "final_url": "https://github.com/electblake/Spectra/tree/main/app/image_processors",
+      "content_type": "text/html",
+      "origin": "requested-url",
+      "saved_to": ".agents\\references\\spectra-image-processors\\2026-10-31\\github.com\\electblake\\Spectra\\tree\\main\\app\\image_processors.md",
+      "status": "written"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/electblake/Spectra/348b54e1e793f00acc279f5dc232c95799f53d29/app/image_processors/__init__.py",
+      "final_url": "https://raw.githubusercontent.com/electblake/Spectra/348b54e1e793f00acc279f5dc232c95799f53d29/app/image_processors/__init__.py",
+      "content_type": "text/plain",
+      "origin": "requested-url",
+      "saved_to": ".agents\\references\\spectra-image-processors\\2026-10-31\\raw.githubusercontent.com\\electblake\\Spectra\\348b54e1e793f00acc279f5dc232c95799f53d29\\app\\image_processors\\__init__.md",
+      "status": "written"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/electblake/Spectra/348b54e1e793f00acc279f5dc232c95799f53d29/app/image_processors/features/__init__.py",
+      "final_url": "https://raw.githubusercontent.com/electblake/Spectra/348b54e1e793f00acc279f5dc232c95799f53d29/app/image_processors/features/__init__.py",
+      "content_type": "text/plain",
+      "origin": "requested-url",
+      "saved_to": ".agents\\references\\spectra-image-processors\\2026-10-31\\raw.githubusercontent.com\\electblake\\Spectra\\348b54e1e793f00acc279f5dc232c95799f53d29\\app\\image_processors\\features\\__init__.md",
+      "status": "written"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/electblake/Spectra/348b54e1e793f00acc279f5dc232c95799f53d29/app/image_processors/features/brightness_contrast.py",
+      "final_url": "https://raw.githubusercontent.com/electblake/Spectra/348b54e1e793f00acc279f5dc232c95799f53d29/app/image_processors/features/brightness_contrast.py",
+      "content_type": "text/plain",
+      "origin": "requested-url",
+      "saved_to": ".agents\\references\\spectra-image-processors\\2026-10-31\\raw.githubusercontent.com\\electblake\\Spectra\\348b54e1e793f00acc279f5dc232c95799f53d29\\app\\image_processors\\features\\brightness_contrast.md",
+      "status": "written"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/electblake/Spectra/348b54e1e793f00acc279f5dc232c95799f53d29/app/image_processors/features/geometry.py",
+      "final_url": "https://raw.githubusercontent.com/electblake/Spectra/348b54e1e793f00acc279f5dc232c95799f53d29/app/image_processors/features/geometry.py",
+      "content_type": "text/plain",
+      "origin": "requested-url",
+      "saved_to": ".agents\\references\\spectra-image-processors\\2026-10-31\\raw.githubusercontent.com\\electblake\\Spectra\\348b54e1e793f00acc279f5dc232c95799f53d29\\app\\image_processors\\features\\geometry.md",
+      "status": "written"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/electblake/Spectra/348b54e1e793f00acc279f5dc232c95799f53d29/app/image_processors/features/histograms.py",
+      "final_url": "https://raw.githubusercontent.com/electblake/Spectra/348b54e1e793f00acc279f5dc232c95799f53d29/app/image_processors/features/histograms.py",
+      "content_type": "text/plain",
+      "origin": "requested-url",
+      "saved_to": ".agents\\references\\spectra-image-processors\\2026-10-31\\raw.githubusercontent.com\\electblake\\Spectra\\348b54e1e793f00acc279f5dc232c95799f53d29\\app\\image_processors\\features\\histograms.md",
+      "status": "written"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/electblake/Spectra/348b54e1e793f00acc279f5dc232c95799f53d29/app/image_processors/features/spatial_color.py",
+      "final_url": "https://raw.githubusercontent.com/electblake/Spectra/348b54e1e793f00acc279f5dc232c95799f53d29/app/image_processors/features/spatial_color.py",
+      "content_type": "text/plain",
+      "origin": "requested-url",
+      "saved_to": ".agents\\references\\spectra-image-processors\\2026-10-31\\raw.githubusercontent.com\\electblake\\Spectra\\348b54e1e793f00acc279f5dc232c95799f53d29\\app\\image_processors\\features\\spatial_color.md",
+      "status": "written"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/electblake/Spectra/348b54e1e793f00acc279f5dc232c95799f53d29/app/image_processors/features/texture.py",
+      "final_url": "https://raw.githubusercontent.com/electblake/Spectra/348b54e1e793f00acc279f5dc232c95799f53d29/app/image_processors/features/texture.py",
+      "content_type": "text/plain",
+      "origin": "requested-url",
+      "saved_to": ".agents\\references\\spectra-image-processors\\2026-10-31\\raw.githubusercontent.com\\electblake\\Spectra\\348b54e1e793f00acc279f5dc232c95799f53d29\\app\\image_processors\\features\\texture.md",
+      "status": "written"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/electblake/Spectra/348b54e1e793f00acc279f5dc232c95799f53d29/app/image_processors/features_extraction.py",
+      "final_url": "https://raw.githubusercontent.com/electblake/Spectra/348b54e1e793f00acc279f5dc232c95799f53d29/app/image_processors/features_extraction.py",
+      "content_type": "text/plain",
+      "origin": "requested-url",
+      "saved_to": ".agents\\references\\spectra-image-processors\\2026-10-31\\raw.githubusercontent.com\\electblake\\Spectra\\348b54e1e793f00acc279f5dc232c95799f53d29\\app\\image_processors\\features_extraction.md",
+      "status": "written"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/electblake/Spectra/348b54e1e793f00acc279f5dc232c95799f53d29/app/config.py",
+      "final_url": "https://raw.githubusercontent.com/electblake/Spectra/348b54e1e793f00acc279f5dc232c95799f53d29/app/config.py",
+      "content_type": "text/plain",
+      "origin": "requested-url",
+      "saved_to": ".agents\\references\\spectra-image-processors\\2026-10-31\\raw.githubusercontent.com\\electblake\\Spectra\\348b54e1e793f00acc279f5dc232c95799f53d29\\app\\config.md",
+      "status": "written"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/electblake/Spectra/348b54e1e793f00acc279f5dc232c95799f53d29/README.md",
+      "final_url": "https://raw.githubusercontent.com/electblake/Spectra/348b54e1e793f00acc279f5dc232c95799f53d29/README.md",
+      "content_type": "text/plain",
+      "origin": "requested-url",
+      "saved_to": ".agents\\references\\spectra-image-processors\\2026-10-31\\raw.githubusercontent.com\\electblake\\Spectra\\348b54e1e793f00acc279f5dc232c95799f53d29\\repository-readme.md",
+      "status": "written"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/electblake/Spectra/348b54e1e793f00acc279f5dc232c95799f53d29/pyproject.toml",
+      "final_url": "https://raw.githubusercontent.com/electblake/Spectra/348b54e1e793f00acc279f5dc232c95799f53d29/pyproject.toml",
+      "content_type": "text/plain",
+      "origin": "requested-url",
+      "saved_to": ".agents\\references\\spectra-image-processors\\2026-10-31\\raw.githubusercontent.com\\electblake\\Spectra\\348b54e1e793f00acc279f5dc232c95799f53d29\\pyproject.md",
+      "status": "written"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/electblake/Spectra/348b54e1e793f00acc279f5dc232c95799f53d29/requirements.txt",
+      "final_url": "https://raw.githubusercontent.com/electblake/Spectra/348b54e1e793f00acc279f5dc232c95799f53d29/requirements.txt",
+      "content_type": "text/plain",
+      "origin": "requested-url",
+      "saved_to": ".agents\\references\\spectra-image-processors\\2026-10-31\\raw.githubusercontent.com\\electblake\\Spectra\\348b54e1e793f00acc279f5dc232c95799f53d29\\requirements.md",
+      "status": "written"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/electblake/Spectra/348b54e1e793f00acc279f5dc232c95799f53d29/LICENSE",
+      "final_url": "https://raw.githubusercontent.com/electblake/Spectra/348b54e1e793f00acc279f5dc232c95799f53d29/LICENSE",
+      "content_type": "text/plain",
+      "origin": "requested-url",
+      "saved_to": ".agents\\references\\spectra-image-processors\\2026-10-31\\raw.githubusercontent.com\\electblake\\Spectra\\348b54e1e793f00acc279f5dc232c95799f53d29\\LICENSE.md",
+      "status": "written"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/electblake/Spectra/348b54e1e793f00acc279f5dc232c95799f53d29/tests/test_image_features.py",
+      "final_url": "https://raw.githubusercontent.com/electblake/Spectra/348b54e1e793f00acc279f5dc232c95799f53d29/tests/test_image_features.py",
+      "content_type": "text/plain",
+      "origin": "requested-url",
+      "saved_to": ".agents\\references\\spectra-image-processors\\2026-10-31\\raw.githubusercontent.com\\electblake\\Spectra\\348b54e1e793f00acc279f5dc232c95799f53d29\\tests\\test_image_features.md",
+      "status": "written"
+    },
+    {
+      "url": "https://github.com/github/github-mcp-server",
+      "final_url": "https://github.com/github/github-mcp-server",
+      "content_type": "text/html",
+      "origin": "llms.txt",
+      "saved_to": ".agents\\references\\spectra-image-processors\\2026-10-31\\github.com\\github\\github-mcp-server.md",
+      "status": "written"
+    }
+  ],
+  "errors": [
+    {
+      "url": "https://raw.githubusercontent.com/llms.txt",
+      "error": "HTTP 404: Not Found"
+    }
+  ]
+}
