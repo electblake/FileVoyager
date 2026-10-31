@@ -4,6 +4,8 @@ A Windows file browser built with PySide6 6.12.0. Performance takes priority ove
 
 ## Run
 
+For the Windows Setup executable and reproducible build instructions, see [installer packaging](packaging/README.md).
+
 From this project directory, with Python 3.12 and uv:
 
 ```powershell

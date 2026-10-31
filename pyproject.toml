@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "filevoyager"
-version = "0.1.0"
+version = "0.1.1"
 description = "A performance-focused PySide6 file browser for Windows"
 requires-python = ">=3.12"
 dependencies = [
@@ -23,3 +23,9 @@ include = ["filevoyager*"]
 
 [tool.setuptools.package-data]
 "filevoyager.image_processors" = ["LICENSE", "README.md"]
+
+[dependency-groups]
+build = [
+    "pyinstaller==6.20.0",
+    "pyinstaller-hooks-contrib==2026.4",
+]
