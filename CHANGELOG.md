@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added a revision-pinned Spectra reference bundle documenting image feature formulas, weights, dependencies, and upstream tests.
 - Added standalone Spectra image feature functions, a uniform callable extractor interface, and NumPy/Pillow dependencies without application integration.
 - Added the initial Windows file browser with a folder tree, sortable Details view, thumbnail grid, shared selection, and Back/Forward/Up navigation.
 - Added cache-only Windows Shell thumbnails for images and videos using `comtypes` and `ctypes`, without thumbnail generation or icon substitution.
