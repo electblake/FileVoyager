@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.6] - 2026-11-01
+
 ### Added
 
 - Added a pinned, SHA-256-verified FFmpeg 9.0.2 shared-library download to Windows Setup, stored beside the venv under the platformdirs application-data directory and removed on uninstall.
