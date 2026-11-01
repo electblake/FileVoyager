@@ -1,50 +1,7 @@
-import os
-from pathlib import Path
-
-from PySide6.QtCore import QSortFilterProxyModel, Qt, Signal
+from PySide6.QtCore import QSortFilterProxyModel, Qt
 from PySide6.QtGui import QIcon
-from PySide6.QtWidgets import QFileIconProvider, QFileSystemModel
 
-
-class SimpleIconProvider(QFileIconProvider):
-    """Avoid native per-file Shell icon lookups during enumeration."""
-
-    def __init__(self, folder_icon, file_icon):
-        super().__init__()
-        self.folder_icon = folder_icon
-        self.file_icon = file_icon
-
-    def icon(self, info):
-        if isinstance(info, QFileIconProvider.IconType):
-            return self.folder_icon if info == self.IconType.Folder else self.file_icon
-        return self.folder_icon if info.isDir() else self.file_icon
-
-    def type(self, info):
-        if info.isDir():
-            return "Folder"
-        suffix = info.suffix().upper()
-        return f"{suffix} file" if suffix else "File"
-
-
-class FileModel(QFileSystemModel):
-    folderMergeRequested = Signal(str, str)
-
-    def __init__(self, folder_icon, file_icon, parent=None):
-        super().__init__(parent)
-        self.provider = SimpleIconProvider(folder_icon, file_icon)
-        self.setIconProvider(self.provider)
-        self.setOption(self.Option.DontUseCustomDirectoryIcons, True)
-        self.setReadOnly(False)
-
-    def setData(self, index, value, role=Qt.ItemDataRole.EditRole):
-        if role == Qt.ItemDataRole.EditRole and index.column() == 0 and self.isDir(index):
-            source = Path(self.filePath(index))
-            destination = source.with_name(value)
-            if (os.path.normcase(str(source)) != os.path.normcase(str(destination))
-                    and destination.is_dir()):
-                self.folderMergeRequested.emit(str(source), str(destination))
-                return False
-        return super().setData(index, value, role)
+from filevoyager.file_model import FileModel
 
 
 MEDIA_SUFFIXES = frozenset({
@@ -88,7 +45,7 @@ class ThumbnailModel(QSortFilterProxyModel):
         return self.order_key(left) < self.order_key(right)
 
     def order_key(self, index):
-        # QFileSystemModel indexes identify stable nodes across layout changes.
+        # Source indexes identify stable nodes across layout changes.
         # Clear before removal/reset and on metadata changes to avoid stale keys.
         identity = index.internalId()
         if identity not in self.order_keys:

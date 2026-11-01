@@ -7,7 +7,7 @@ from PySide6.QtCore import QDir, QItemSelectionModel, QSignalBlocker, QTimer, Qt
 from PySide6.QtGui import QAction, QActionGroup
 from PySide6.QtWidgets import (
     QAbstractItemView, QComboBox, QHeaderView, QInputDialog, QLabel, QLineEdit,
-    QMainWindow, QMenu, QSplitter, QStackedWidget, QStyle, QToolBar, QTreeView,
+    QMainWindow, QMenu, QSplitter, QStackedWidget, QStyle, QTableView, QToolBar, QTreeView,
 )
 
 from filevoyager.grid import ThumbnailGrid
@@ -20,6 +20,8 @@ from filevoyager.preview_dock import PreviewDock
 from filevoyager.shortcuts import KeyboardShortcutsDialog, Shortcuts, install_item_shortcuts
 from filevoyager.item_actions import PackToFolderDialog, flatten_folders, pack_to_folder
 from filevoyager.folder_merge import FolderMerge
+from filevoyager.link_drag import LinkDrag
+from filevoyager.selection import selected_row_count, selected_rows
 
 
 def resolve_directory(path):
@@ -42,7 +44,6 @@ class ExplorerWindow(QMainWindow):
         self.shortcuts_dialog = None
         self.folder_state = None
         self.pending_restore = False
-        self.loaded_paths = set()
         self.restore_timer = QTimer(self)
         self.restore_timer.setSingleShot(True)
         self.restore_timer.timeout.connect(self.restore_scroll)
@@ -68,7 +69,6 @@ class ExplorerWindow(QMainWindow):
         file_icon = style.standardIcon(QStyle.StandardPixmap.SP_FileIcon)
         self.files = FileModel(folder_icon, file_icon, self)
         self.files.folderMergeRequested.connect(self.merge_renamed_folder)
-        self.files.setFilter(QDir.Filter.AllDirs | QDir.Filter.Files | QDir.Filter.NoDotAndDotDot)
         self.folders = DirectoryTreeModel(folder_icon, self)
         self.cache = ThumbnailCache()
         self.model = ThumbnailModel(self.files, self.cache, self)
@@ -84,18 +84,19 @@ class ExplorerWindow(QMainWindow):
         self.tree.expanded.connect(self.folders.expanded)
         self.folders.pathReady.connect(self.select_tree_index)
 
-        self.details = QTreeView()
+        self.details = QTableView()
         self.details.setModel(self.model)
-        self.details.setRootIsDecorated(False)
-        self.details.setItemsExpandable(False)
-        self.details.setUniformRowHeights(True)
+        self.details.setShowGrid(False)
+        self.details.verticalHeader().hide()
+        self.details.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Fixed)
+        self.details.verticalHeader().setDefaultSectionSize(self.details.fontMetrics().height() + 4)
         self.details.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
         self.details.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.details.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.details.setSortingEnabled(True)
         self.details.sortByColumn(0, Qt.SortOrder.AscendingOrder)
-        self.details.header().setSectionResizeMode(QHeaderView.ResizeMode.Interactive)
-        self.details.header().setStretchLastSection(True)
+        self.details.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Interactive)
+        self.details.horizontalHeader().setStretchLastSection(True)
         self.details.setColumnWidth(0, 380)
         self.details.setColumnWidth(1, 100)
         self.details.setColumnWidth(2, 130)
@@ -173,6 +174,7 @@ class ExplorerWindow(QMainWindow):
         self.tree_rename_action = self.tree_item_menu.addAction("Rename", self.rename_tree_item)
         self.tree.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.tree.customContextMenuRequested.connect(self.show_tree_item_menu)
+        self.link_drag = LinkDrag(self)
         self.status = QLabel()
         self.statusBar().addWidget(self.status, 1)
         self.selection.selectionChanged.connect(self.update_status)
@@ -198,7 +200,7 @@ class ExplorerWindow(QMainWindow):
         if settings.contains("window/splitter"):
             self.centralWidget().restoreState(settings.value("window/splitter"))
         if settings.contains("details/header"):
-            header = self.details.header()
+            header = self.details.horizontalHeader()
             header.restoreState(settings.value("details/header"))
             self.details.sortByColumn(header.sortIndicatorSection(), header.sortIndicatorOrder())
         if settings.contains("similarity/eps"):
@@ -215,7 +217,7 @@ class ExplorerWindow(QMainWindow):
         settings.setValue("window/geometry", self.saveGeometry())
         settings.setValue("window/state", self.saveState())
         settings.setValue("window/splitter", self.centralWidget().saveState())
-        settings.setValue("details/header", self.details.header().saveState())
+        settings.setValue("details/header", self.details.horizontalHeader().saveState())
         settings.setValue("similarity/eps", self.similarity_dock.eps.value())
         settings.setValue("similarity/min_samples", self.similarity_dock.min_samples.value())
         for index, spin in enumerate(self.similarity_dock.weights):
@@ -307,15 +309,14 @@ class ExplorerWindow(QMainWindow):
         self.update_item_actions()
 
     def update_item_actions(self, *args):
-        selected = self.selection.selectedRows(0)
-        available = self.action_future is None and bool(selected)
+        available = self.action_future is None and self.selection.hasSelection()
         self.pack_action.setEnabled(available)
         self.flatten_action.setEnabled(available and all(
-            self.files.isDir(self.model.mapToSource(index)) for index in selected))
+            self.files.isDir(self.model.mapToSource(index)) for index in selected_rows(self.selection)))
 
     def selected_item_paths(self):
         return tuple(Path(self.files.filePath(self.model.mapToSource(index)))
-                     for index in self.selection.selectedRows(0))
+                     for index in selected_rows(self.selection))
 
     def show_item_menu(self, view, point):
         index = view.indexAt(point)
@@ -336,8 +337,7 @@ class ExplorerWindow(QMainWindow):
         available = self.action_future is None
         self.tree_flatten_action.setEnabled(available)
         self.tree_pack_action.setEnabled(available and self.tree_action_path.parent != self.tree_action_path)
-        self.tree_rename_action.setEnabled(available and self.tree_action_path.parent != self.tree_action_path and bool(
-            self.files.flags(self.files.index(str(self.tree_action_path))) & Qt.ItemFlag.ItemIsEditable))
+        self.tree_rename_action.setEnabled(available and self.tree_action_path.parent != self.tree_action_path)
         self.tree_item_menu.popup(self.tree.viewport().mapToGlobal(point))
 
     def rename_tree_item(self):
@@ -347,7 +347,7 @@ class ExplorerWindow(QMainWindow):
         dialog.setWindowTitle("Rename folder")
         dialog.setLabelText("New folder name:")
         dialog.setTextValue(path.name)
-        dialog.textValueSelected.connect(lambda name: self.files.setData(self.files.index(str(path)), name))
+        dialog.textValueSelected.connect(lambda name: self.files.rename_path(str(path), name))
         dialog.open()
 
     def show_pack_dialog(self, *, paths=None):
@@ -491,7 +491,6 @@ class ExplorerWindow(QMainWindow):
         self.thumbnails.invalidate()
 
     def directory_loaded(self, path):
-        self.loaded_paths.add(QDir.cleanPath(path))
         if QDir.cleanPath(path) == QDir.cleanPath(self.current_path):
             self.update_status()
             self.thumbnails.schedule()
@@ -517,7 +516,7 @@ class ExplorerWindow(QMainWindow):
     def restore_scroll(self):
         if not self.pending_restore:
             return
-        if QDir.cleanPath(self.current_path) not in self.loaded_paths:
+        if not self.files.is_loaded(self.current_path):
             return
         view = self.views.currentWidget()
         view.executeDelayedItemsLayout()
@@ -538,17 +537,16 @@ class ExplorerWindow(QMainWindow):
 
     def update_status(self, *args):
         count = self.model.rowCount(self.details.rootIndex())
-        selected = len(self.selection.selectedRows(0))
+        selected = selected_row_count(self.selection)
         self.status.setText(f"{count:,} items   ·   {selected:,} selected")
 
     def update_preview_selection(self, *args):
         index = self.selection.currentIndex()
         if not index.isValid() or not self.selection.isSelected(index):
-            selected = self.selection.selectedRows(0)
-            if not selected:
+            index = next(selected_rows(self.selection), None)
+            if index is None:
                 self.preview_dock.set_item("")
                 return
-            index = selected[0]
         source = self.model.mapToSource(index.siblingAtColumn(0))
         path = self.files.filePath(source)
         media = (path.rpartition(".")[2].lower() in MEDIA_EXTENSIONS
@@ -556,9 +554,14 @@ class ExplorerWindow(QMainWindow):
         self.preview_dock.set_item(path, media)
 
     def update_similarity_selection(self, *args):
-        paths = tuple(self.files.filePath(self.model.mapToSource(index))
-                      for index in self.selection.selectedRows(0)
-                      if not self.files.isDir(self.model.mapToSource(index)))
+        paths = []
+        for index in selected_rows(self.selection):
+            source = self.model.mapToSource(index)
+            if not self.files.isDir(source):
+                paths.append(self.files.filePath(source))
+                # The dock only uses a reference when exactly one file is selected.
+                if len(paths) == 2:
+                    break
         self.similarity_dock.set_selection(paths)
 
     def apply_image_order(self, result):
@@ -569,8 +572,8 @@ class ExplorerWindow(QMainWindow):
 
     def clear_image_order(self):
         self.model.sort(0, Qt.SortOrder.AscendingOrder)
-        with QSignalBlocker(self.details.header()):
-            self.details.header().setSortIndicator(0, Qt.SortOrder.AscendingOrder)
+        with QSignalBlocker(self.details.horizontalHeader()):
+            self.details.horizontalHeader().setSortIndicator(0, Qt.SortOrder.AscendingOrder)
 
     def closeEvent(self, event):
         if self.action_future is not None:
@@ -595,4 +598,5 @@ class ExplorerWindow(QMainWindow):
             self.navigation_future.result()
         self.folders.close()
         self.thumbnails.close()
+        self.files.close()
         super().closeEvent(event)

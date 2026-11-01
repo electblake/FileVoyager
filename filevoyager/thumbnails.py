@@ -119,9 +119,8 @@ class ThumbnailController(QObject):
             path = source.filePath(source_index)
             if path.rpartition(".")[2].lower() not in MEDIA_EXTENSIONS or source.isDir(source_index):
                 continue
-            info = source.fileInfo(source_index)
-            key = ThumbnailKey(path, info.lastModified().toMSecsSinceEpoch(),
-                               info.size(), pixels, ratio)
+            modified, size = source.file_metadata(source_index)
+            key = ThumbnailKey(path, modified, size, pixels, ratio)
             self.model.keys[path] = key
             if (self.model.cache.get(key) is None and key not in active_keys
                     and key not in self.requested):

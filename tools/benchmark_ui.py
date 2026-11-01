@@ -5,14 +5,17 @@ Run: uv run python tools/benchmark_ui.py --items 10000
 
 import argparse
 import ctypes
+import cProfile
 from ctypes import wintypes
 import json
 from pathlib import Path
 import tempfile
 import time
+import pstats
+import io
 from collections import defaultdict
 
-from PySide6.QtCore import QEventLoop, QSettings, QTimer
+from PySide6.QtCore import QEvent, QEventLoop, QSettings, QTimer
 from PySide6.QtGui import QColor, QImage
 from PySide6.QtWidgets import QApplication
 
@@ -78,6 +81,35 @@ class MemoryCounters(ctypes.Structure):
             "PagefileUsage", "PeakPagefileUsage")]
 
 
+class EventProfileApplication(QApplication):
+    def __init__(self, profile):
+        self.profile = profile
+        super().__init__([])
+
+    def notify(self, receiver, event):
+        if event.type() not in (QEvent.Type.MetaCall, QEvent.Type.Timer, QEvent.Type.UpdateRequest):
+            return super().notify(receiver, event)
+        name = type(receiver).__name__ + "(" + type(receiver.parent()).__name__ + ")." + event.type().name
+        started = time.perf_counter()
+        cpu = time.thread_time()
+        profiler = cProfile.Profile() if isinstance(receiver, (FileModel, QTimer)) else None
+        if profiler is not None:
+            profiler.enable()
+        result = super().notify(receiver, event)
+        if profiler is not None:
+            profiler.disable()
+        elapsed = (time.perf_counter() - started) * 1000
+        if elapsed >= 5:
+            record = {"phase": self.profile.phase, "callback": name, "duration_ms": elapsed,
+                      "thread_cpu_ms": (time.thread_time() - cpu) * 1000}
+            if profiler is not None:
+                stream = io.StringIO()
+                pstats.Stats(profiler, stream=stream).sort_stats("cumulative").print_stats(15)
+                record["profile"] = stream.getvalue()
+            self.profile.slow.append(record)
+        return result
+
+
 def synthetic_image(path, width, height):
     number = int(Path(path).stem.split("-")[-1])
     image = QImage(width, height, QImage.Format.Format_ARGB32_Premultiplied)
@@ -106,6 +138,8 @@ def main():
     parser.add_argument("--items", type=int, default=10000)
     parser.add_argument("--prefix", default="ui")
     parser.add_argument("--profile-callbacks", action="store_true")
+    parser.add_argument("--profile-events", action="store_true")
+    parser.add_argument("--native-thumbnails", action="store_true")
     args = parser.parse_args()
     profile = CallbackProfile()
     if args.profile_callbacks:
@@ -113,10 +147,12 @@ def main():
                            (ThumbnailGrid, ["candidate_rows", "scrollContentsBy"]),
                            (ThumbnailController, ["refresh", "poll"]),
                            (DirectoryTreeModel, ["apply_batch", "poll"]),
-                           (FileModel, ["fileInfo", "filePath", "isDir"])]:
+                           (FileModel, ["file_metadata", "filePath", "isDir"])]:
             for name in names:
                 profile.instrument(cls, name)
         app = ProfileApplication(profile)
+    elif args.profile_events:
+        app = EventProfileApplication(profile)
     else:
         app = QApplication([])
     output = Path(".benchmarks")
@@ -126,10 +162,19 @@ def main():
         second = Path(temp) / "Another folder"
         first.mkdir()
         second.mkdir()
+        payload = b""
+        loader = synthetic_image
+        if args.native_thumbnails:
+            from PIL import Image
+            from filevoyager.shell_bridge import load_thumbnail_image
+            encoded = io.BytesIO()
+            Image.new("RGB", (256, 192), "darkcyan").save(encoded, format="PNG")
+            payload = encoded.getvalue()
+            loader = load_thumbnail_image
         for number in range(args.items):
-            (first / f"photo-{number:05}.png").touch()
+            (first / f"photo-{number:05}.png").write_bytes(payload)
         for number in range(100):
-            (second / f"photo-{number:05}.png").touch()
+            (second / f"photo-{number:05}.png").write_bytes(payload)
         beats = []
         timer = QTimer()
         timer.setInterval(10)
@@ -138,10 +183,10 @@ def main():
         start = time.perf_counter()
         preferences = FolderPreferences(QSettings(str(Path(temp) / "benchmark.ini"), QSettings.Format.IniFormat))
         preferences.save(str(first), preferences.load(str(first), False))
-        window = ExplorerWindow(str(first), synthetic_image, preferences=preferences)
+        window = ExplorerWindow(str(first), loader, preferences=preferences)
         window.tree.setObjectName("folder-tree")
         window.details.setObjectName("details")
-        if args.profile_callbacks:
+        if args.profile_callbacks or args.profile_events:
             def record_rows(kind, parent, first, last):
                 profile.model_events.append({"event": kind, "phase": profile.phase,
                     "at_ms": (time.perf_counter() - profile.started) * 1000,
@@ -185,6 +230,15 @@ def main():
                  and window.model.rowCount(window.grid.rootIndex()) == args.items)
         warm_navigation_ms = (time.perf_counter() - start) * 1000
         wait_for(lambda: not window.thumbnails.active and not window.thumbnails.pending)
+        profile.phase = "rapid-navigation"
+        start = time.perf_counter()
+        for _ in range(10):
+            window.navigate(str(second))
+            window.navigate(str(first))
+        wait_for(lambda: window.current_path == str(first) and window.navigation_future is None
+                 and window.navigation_pending is None and not window.pending_restore)
+        rapid_navigation_ms = (time.perf_counter() - start) * 1000
+        wait_for(lambda: not window.thumbnails.active and not window.thumbnails.pending)
         counters = MemoryCounters()
         counters.cb = ctypes.sizeof(counters)
         kernel = ctypes.WinDLL("kernel32")
@@ -194,11 +248,15 @@ def main():
         gaps = sorted((right - left) * 1000 for left, right in zip(beats, beats[1:]))
         scroll_gaps = [(right - left) * 1000 for left, right in zip(scroll_beats, scroll_beats[1:])]
         metrics = {
-            "scope": "Synthetic QImage source; excludes native Shell retrieval and source decoding; cold means first model visit, not flushed OS disk cache",
+            "scope": ("Real Windows Shell thumbnails from generated 256x192 PNG files; "
+                      if args.native_thumbnails else
+                      "Synthetic QImage source; excludes native Shell retrieval and source decoding; ")
+                     + "cold means first model visit, not flushed OS disk cache",
             "items": args.items,
             "initial_navigation_ms": round(cold_navigation_ms, 2),
             "first_12_thumbnails_ms": round(first_thumbnails_ms, 2),
             "warm_navigation_ms": round(warm_navigation_ms, 2),
+            "rapid_navigation_20_requests_ms": round(rapid_navigation_ms, 2),
             "event_loop_gap_p95_ms": round(gaps[int(len(gaps) * .95)], 2),
             "event_loop_gap_max_ms": round(max(gaps), 2),
             "scroll_event_loop_gap_max_ms": round(max(scroll_gaps), 2),
@@ -210,7 +268,7 @@ def main():
             "peak_pending_requests": window.thumbnails.peak_pending,
         }
         (output / f"{args.prefix}-metrics.json").write_text(json.dumps(metrics, indent=2), encoding="utf-8")
-        if args.profile_callbacks:
+        if args.profile_callbacks or args.profile_events:
             (output / f"{args.prefix}-callbacks.json").write_text(json.dumps({
                 "totals": profile.totals, "slow_callbacks": profile.slow,
                 "model_events": profile.model_events,

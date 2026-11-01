@@ -7,9 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added Alt-drag Windows shortcut creation in Details, Grid, and the folder tree, with native link-cursor feedback.
+
 ### Changed
 
 - Enabled thumbnail generation through Windows Shell `GetImage`, letting Windows cache missing thumbnails while preserving bounded background scheduling.
+- Moved large-folder metadata loading, natural sorting, and folder-tree comparisons to background workers, with bounded Qt model updates and four cached directory listings.
+- Used fixed-height table rows for Details and compact Qt selection ranges for responsive large selections and drag interactions.
+
+### Fixed
+
+- Reduced initial-loading pauses and scrolling gaps in 50,000-item folders while preserving selection, sorting, renaming, and live filesystem updates.
+- Preserved completed grid layouts when reopening an unchanged folder at the same thumbnail size.
 
 ## [0.1.7] - 2026-11-01
 

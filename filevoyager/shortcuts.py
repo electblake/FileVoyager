@@ -6,6 +6,7 @@ from PySide6.QtWidgets import (
     QDialog, QDialogButtonBox, QHeaderView, QKeySequenceEdit, QLabel, QLineEdit,
     QStyledItemDelegate, QTableView, QVBoxLayout,
 )
+from filevoyager.selection import selected_row_count, selected_rows
 
 
 class Shortcuts:
@@ -106,11 +107,11 @@ def install_item_shortcuts(view):
     rename = QAction("Rename", view)
     rename.setShortcutContext(Qt.ShortcutContext.WidgetShortcut)
     rename.setAutoRepeat(False)
-    rename.triggered.connect(lambda: view.edit(view.selectionModel().selectedRows(0)[0]))
+    rename.triggered.connect(lambda: view.edit(next(selected_rows(view.selectionModel()))))
     view.addAction(rename)
 
     def update_rename():
-        rename.setEnabled(len(view.selectionModel().selectedRows(0)) == 1)
+        rename.setEnabled(selected_row_count(view.selectionModel()) == 1)
 
     view.selectionModel().selectionChanged.connect(update_rename)
     update_rename()

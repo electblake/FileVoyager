@@ -8,7 +8,7 @@ import json
 import configparser
 from unittest.mock import patch
 
-from PySide6.QtCore import QItemSelectionModel, QSettings, Qt
+from PySide6.QtCore import QItemSelection, QItemSelectionModel, QSettings, Qt
 from PySide6.QtGui import QImage
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QLineEdit, QMessageBox
@@ -84,7 +84,7 @@ class BrowserTests(QtCase):
         window.move(10, 50)
         window.centralWidget().setSizes([180, 520])
         window.details.setColumnWidth(0, 275)
-        window.details.header().moveSection(1, 2)
+        window.details.horizontalHeader().moveSection(1, 2)
         window.details.sortByColumn(0, Qt.SortOrder.DescendingOrder)
         window.similarity_dock.eps.setValue(0.4321)
         window.similarity_dock.min_samples.setValue(7)
@@ -110,9 +110,9 @@ class BrowserTests(QtCase):
         self.assertEqual(reopened.dockWidgetArea(reopened.similarity_dock), Qt.DockWidgetArea.LeftDockWidgetArea)
         self.assertFalse(reopened.preview_dock.isVisible())
         self.assertEqual(reopened.details.columnWidth(0), 275)
-        self.assertEqual(reopened.details.header().visualIndex(1), 2)
-        self.assertEqual(reopened.details.header().sortIndicatorSection(), 0)
-        self.assertEqual(reopened.details.header().sortIndicatorOrder(), Qt.SortOrder.DescendingOrder)
+        self.assertEqual(reopened.details.horizontalHeader().visualIndex(1), 2)
+        self.assertEqual(reopened.details.horizontalHeader().sortIndicatorSection(), 0)
+        self.assertEqual(reopened.details.horizontalHeader().sortIndicatorOrder(), Qt.SortOrder.DescendingOrder)
         self.wait_for(lambda: reopened.model.rowCount(reopened.details.rootIndex()) == 601)
         names = [reopened.model.index(row, 0, reopened.details.rootIndex()).data()
                  for row in range(601)]
@@ -176,6 +176,29 @@ class BrowserTests(QtCase):
         self.addCleanup(reopened.close)
         self.wait_for(lambda: reopened.current_path == str(self.first))
         self.assertTrue(reopened.isMaximized())
+
+    def test_large_selection_updates_without_expanding_selected_rows(self):
+        window = self.open_window()
+        root = window.details.rootIndex()
+        first = window.model.index(0, 0, root)
+        last = window.model.index(600, 3, root)
+        window.selection.setCurrentIndex(first, QItemSelectionModel.SelectionFlag.NoUpdate)
+        with patch.object(window.selection, "selectedRows", side_effect=AssertionError("Expanded entire selection")):
+            window.selection.select(QItemSelection(first, last), QItemSelectionModel.SelectionFlag.Select)
+            self.assertIn("601 selected", window.status.text())
+            self.assertTrue(window.pack_action.isEnabled())
+            self.assertFalse(window.flatten_action.isEnabled())
+            self.assertTrue(all(not action.isEnabled() for action in window.rename_actions.values()))
+            self.assertIsNone(window.similarity_dock.reference)
+            window.selection.select(QItemSelection(window.model.index(2, 0, root), last),
+                                    QItemSelectionModel.SelectionFlag.Deselect)
+            self.assertIn("2 selected", window.status.text())
+            self.assertEqual(Path(window.similarity_dock.reference).name, "image-0000.png")
+            window.selection.select(first, QItemSelectionModel.SelectionFlag.Deselect
+                                     | QItemSelectionModel.SelectionFlag.Rows)
+            self.assertIn("1 selected", window.status.text())
+            self.assertTrue(all(action.isEnabled() for action in window.rename_actions.values()))
+            self.assertEqual(Path(window.preview_dock.path).name, "image-0000.png")
 
     def test_modifier_click_selection_in_details_and_grid(self):
         window = self.open_window()
@@ -563,6 +586,21 @@ class BrowserTests(QtCase):
         self.wait_for(lambda: reopened.current_path == str(self.second) and not reopened.pending_restore)
         self.assertIs(reopened.views.currentWidget(), reopened.details)
         self.assertEqual(reopened.icon_size.currentData(), 80)
+
+    def test_reopening_current_grid_preserves_layout_and_scroll(self):
+        window = self.open_window()
+        window.switch_view(window.grid)
+        self.wait_for(lambda: window.grid.layout_complete and not window.pending_restore)
+        window.grid.verticalScrollBar().setValue(200)
+        self.app.processEvents()
+        position = window.grid.verticalScrollBar().value()
+        with patch.object(window.grid, 'doItemsLayout', wraps=window.grid.doItemsLayout) as layout:
+            window.navigate(str(self.first))
+            self.wait_for(lambda: window.navigation_future is None and not window.pending_restore)
+            QTest.qWait(50)
+            self.assertEqual(window.grid.verticalScrollBar().value(), position)
+            self.assertTrue(window.grid.layout_complete)
+            layout.assert_not_called()
 
     def test_failed_requests_surface_once_without_automatic_retry(self):
         calls = []

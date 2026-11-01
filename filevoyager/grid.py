@@ -27,7 +27,7 @@ class ThumbnailGrid(QListView):
         self.setMovement(self.Movement.Static)
         self.setResizeMode(self.ResizeMode.Adjust)
         self.setLayoutMode(self.LayoutMode.Batched)
-        self.setBatchSize(256)
+        self.setBatchSize(512)
         self.setUniformItemSizes(True)
         self.setWordWrap(False)
         self.setTextElideMode(Qt.TextElideMode.ElideMiddle)
@@ -41,8 +41,9 @@ class ThumbnailGrid(QListView):
         self.set_thumbnail_size(128)
 
     def set_thumbnail_size(self, size):
-        if self.iconSize() != QSize(size, size):
-            self.layout_complete = False
+        if self.iconSize() == QSize(size, size):
+            return
+        self.layout_complete = False
         self.setIconSize(QSize(size, size))
         self.setGridSize(QSize(size + 32, size + 48))
         self.viewportChanged.emit()
@@ -53,8 +54,9 @@ class ThumbnailGrid(QListView):
         self.viewportChanged.emit()
 
     def setRootIndex(self, index):
-        if index != self.rootIndex():
-            self.layout_complete = False
+        if index == self.rootIndex():
+            return
+        self.layout_complete = False
         super().setRootIndex(index)
 
     def rowsInserted(self, parent, start, end):

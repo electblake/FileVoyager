@@ -23,6 +23,15 @@ def scan_directories(path):
     return directories
 
 
+def directory_changes(path, children):
+    entries = [(name, path, path_key(path)) for name, path in scan_directories(path)]
+    desired = {key for _, _, key in entries}
+    existing = set(children)
+    removals = deque(row for row in reversed(range(len(children))) if children[row] not in desired)
+    additions = deque((name, path) for name, path, key in entries if key not in existing)
+    return removals, additions
+
+
 @dataclass
 class DirectoryNode:
     path: str
@@ -126,7 +135,8 @@ class DirectoryTreeModel(QStandardItemModel):
             path = self.nodes[self.active_key].path
             if path and path not in self.watcher.directories():
                 self.watcher.addPath(path)
-            self.future = self.executor.submit(scan_directories, path)
+            self.future = self.executor.submit(directory_changes, path,
+                                               tuple(self.nodes[self.active_key].children))
             self.poll_timer.start()
 
     def poll(self):
@@ -135,14 +145,7 @@ class DirectoryTreeModel(QStandardItemModel):
         future = self.future
         self.future = None
         self.poll_timer.stop()
-        entries = future.result()
-        node = self.nodes[self.active_key]
-        desired = {path_key(path) for _, path in entries}
-        existing = set(node.children)
-        self.removals = deque(row for row in reversed(range(len(node.children)))
-                              if node.children[row] not in desired)
-        self.additions = deque((name, path) for name, path in entries
-                               if path_key(path) not in existing)
+        self.removals, self.additions = future.result()
         self.applying = True
         self.batch_timer.start(0)
 
@@ -161,8 +164,11 @@ class DirectoryTreeModel(QStandardItemModel):
         additions = []
         while self.additions and work < self.batch_size:
             name, path = self.additions.popleft()
-            child = self.make_node(name, path)
             key = path_key(path)
+            # reveal_path can insert a drive while the drive scan is in flight.
+            if key in self.nodes:
+                continue
+            child = self.make_node(name, path)
             position = bisect_left(node.children, key)
             node.children.insert(position, key)
             additions.append((position, child.item))
