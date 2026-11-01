@@ -2,10 +2,12 @@ from unittest.mock import Mock, patch
 
 from PySide6.QtCore import QItemSelectionModel, QMimeData, QSettings, QUrl, Qt
 from PySide6.QtTest import QTest
+from PySide6.QtWidgets import QStyle, QStyleOptionViewItem
 
 from support import QtCase
 from test_browser import image_result
 from filevoyager.clipboard import DROP_EFFECT
+from filevoyager.directory_tree import path_key
 from filevoyager.preferences import FolderPreferences
 from filevoyager.window import ExplorerWindow
 
@@ -53,6 +55,71 @@ class ClipboardTests(QtCase):
         self.assertEqual((self.folder / "source - Copy (2).txt").read_text(), "contents")
         self.assertEqual(self.source.read_text(), "contents")
 
+    def test_paste_menus_follow_live_clipboard_and_operation_state(self):
+        view = self.window.details
+        index = self.select(view, self.source)
+        self.window.show_item_menu(view, view.visualRect(index).center())
+        menu = self.window.item_menus[view]
+        paste = menu.actions()[2]
+        self.assertTrue(paste.isVisible())
+        self.assertFalse(paste.isEnabled())
+        self.clip.put((self.source,), False)
+        self.assertTrue(paste.isEnabled())
+        self.clip.clipboard.setText("text")
+        self.assertFalse(paste.isEnabled())
+        self.clip.put((self.source,), True)
+        self.assertFalse(paste.isEnabled())
+        self.select(view, self.destination)
+        self.assertTrue(paste.isEnabled())
+        paste.trigger()
+        self.assertFalse(paste.isEnabled())
+        menu.close()
+        self.wait_for(lambda: self.window.action_future is None)
+        self.assertFalse(paste.isEnabled())
+        self.assertEqual((self.destination / self.source.name).read_text(), "contents")
+
+    def test_edit_menu_reuses_actions_for_focused_view(self):
+        for view in (self.window.details, self.window.grid):
+            self.window.switch_view(view)
+            self.select(view, self.source)
+            self.window.edit_menu.aboutToShow.emit()
+            self.assertEqual(self.window.edit_menu.actions(), list(self.clip.actions[view]))
+            self.window.edit_menu.actions()[1].trigger()
+            self.assertEqual(self.clip.snapshot(), ((self.source,), False))
+            self.assertTrue(self.window.edit_menu.actions()[2].isEnabled())
+        tree = self.window.tree
+        self.wait_for(lambda: self.window.folders.file_path(tree.currentIndex()) == str(self.folder))
+        tree.setFocus()
+        self.window.edit_menu.aboutToShow.emit()
+        self.assertEqual(self.window.edit_menu.actions(), list(self.clip.actions[tree]))
+        self.window.edit_menu.actions()[1].trigger()
+        self.assertEqual(self.clip.snapshot(), ((self.folder,), False))
+        self.assertFalse(self.window.edit_menu.actions()[2].isEnabled())
+
+    def test_cut_style_tracks_external_clipboard_without_disabling_items(self):
+        tree = self.window.tree
+        self.wait_for(lambda: self.window.folders.file_path(tree.currentIndex()) == str(self.folder))
+        file_index = self.select(self.window.details, self.source)
+        for cut in (True, False, True):
+            mime = QMimeData()
+            mime.setUrls([QUrl.fromLocalFile(str(path)) for path in (self.source, self.folder)])
+            mime.setData(DROP_EFFECT, (2 if cut else 1).to_bytes(4, "little"))
+            self.clip.clipboard.setMimeData(mime)
+            for view in (self.window.details, self.window.grid, tree):
+                index = tree.currentIndex() if view is tree else file_index
+                option = QStyleOptionViewItem()
+                option.initFrom(view)
+                view.itemDelegate().initStyleOption(option, index)
+                self.assertEqual(bool(option.state & QStyle.StateFlag.State_Enabled), not cut)
+                self.assertTrue(index.flags() & Qt.ItemFlag.ItemIsEnabled)
+                self.assertTrue(index.flags() & Qt.ItemFlag.ItemIsSelectable)
+        self.clip.clipboard.clear()
+        self.assertFalse(self.clip.cut_paths)
+        option = QStyleOptionViewItem()
+        option.initFrom(self.window.details)
+        self.window.details.itemDelegate().initStyleOption(option, file_index)
+        self.assertTrue(option.state & QStyle.StateFlag.State_Enabled)
+
     def test_cut_shortcut_moves_and_clears_clipboard_after_success(self):
         view = self.window.details
         self.select(view, self.source)
@@ -63,6 +130,21 @@ class ClipboardTests(QtCase):
         self.assertFalse(self.source.exists())
         self.assertEqual((self.destination / self.source.name).read_text(), "contents")
         self.assertEqual(self.clip.snapshot(), ((), False))
+        self.assertFalse(self.clip.cut_paths)
+
+    def test_partial_cut_keeps_only_skipped_items_dimmed(self):
+        second = self.folder / "second.txt"
+        second.write_text("second")
+        target = self.destination / self.source.name
+        target.write_text("existing")
+        self.window.folder_merge.ask = Mock(return_value="skip")
+        self.clip.put((self.source, second), True)
+        self.paste(self.destination)
+        self.assertEqual(self.clip.snapshot(), ((self.source,), True))
+        self.assertEqual(self.clip.cut_paths, {path_key(self.source)})
+        self.assertEqual(target.read_text(), "existing")
+        self.assertEqual((self.destination / second.name).read_text(), "second")
+        self.assertFalse(second.exists())
 
     def test_external_file_urls_and_conflict_skip_replace_cancel(self):
         target = self.destination / self.source.name
@@ -161,6 +243,8 @@ class ClipboardTests(QtCase):
         self.select(self.window.details, self.source)
         with patch.object(self.window, "selected_item_paths", side_effect=AssertionError("expanded selection")):
             self.clip.update()
+            self.clip.put((self.source,), True)
+            self.window.edit_menu.aboutToShow.emit()
         self.assertTrue(self.clip.actions[self.window.details][0].isEnabled())
 
     def test_move_previously_opened_folder_does_not_rescan_deleted_source(self):

@@ -57,18 +57,18 @@ class BrowserTests(QtCase):
 
     def test_help_and_quit_menu_lifecycle(self):
         window = self.open_window()
-        window.menuBar().actions()[2].menu().actions()[0].trigger()
+        window.menuBar().actions()[3].menu().actions()[0].trigger()
         dialog = window.update_dialog
         self.assertTrue(dialog.isVisible())
         self.assertIsNone(dialog.future)
         self.assertTrue(dialog.check_button.isEnabled())
         dialog.reject()
-        window.menuBar().actions()[2].menu().actions()[0].trigger()
+        window.menuBar().actions()[3].menu().actions()[0].trigger()
         self.assertIsNot(window.update_dialog, dialog)
         self.assertTrue(window.update_dialog.isVisible())
         window.update_dialog.reject()
         menus = window.menuBar().actions()
-        self.assertEqual([action.text() for action in menus], ["&File", "&View", "&Help"])
+        self.assertEqual([action.text() for action in menus], ["&File", "&Edit", "&View", "&Help"])
         settings = window.preferences.settings
         settings.setValue("quit-test", "saved")
         with patch.object(settings, "sync", wraps=settings.sync) as sync:
@@ -80,7 +80,7 @@ class BrowserTests(QtCase):
     def test_theme_apply_close_and_restore(self):
         window = self.open_window()
         initial = self.app.palette()
-        window.menuBar().actions()[1].menu().actions()[0].trigger()
+        window.menuBar().actions()[2].menu().actions()[0].trigger()
         dialog = window.theme_dialog
         self.assertTrue(dialog.isVisible())
         self.assertEqual(dialog.theme.count(), len(qt_themes.get_themes()))
@@ -195,7 +195,7 @@ class BrowserTests(QtCase):
 
     def test_keyboard_shortcuts_menu_persists_and_rebinds_rename(self):
         window = self.open_window()
-        help_menu = window.menuBar().actions()[2].menu()
+        help_menu = window.menuBar().actions()[3].menu()
         help_menu.actions()[1].trigger()
         dialog = window.shortcuts_dialog
         self.assertTrue(dialog.isVisible())

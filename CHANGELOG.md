@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added an Edit menu with Cut, Copy, and Paste for the focused file view or folder tree.
+- Dimmed cut items in Details, Grid, and the folder tree until the clipboard changed or the move completed.
+
+### Fixed
+
+- Kept context-menu Paste visible and synchronized its availability with clipboard, selection, and file-operation changes.
+- Disabled pasting cut items back into their existing folder.
+
 ## [0.4.1] - 2026-11-01
 
 ### Fixed

@@ -24,7 +24,7 @@ from filevoyager.folder_merge import FolderMerge
 from filevoyager.link_drag import LinkDrag
 from filevoyager.selection import selected_row_count, selected_rows
 from filevoyager.themes import ThemeDialog
-from filevoyager.clipboard import FileClipboard
+from filevoyager.clipboard import CutItemDelegate, FileClipboard
 
 
 def resolve_directory(path):
@@ -170,6 +170,7 @@ class ExplorerWindow(QMainWindow):
         quit_action = file_menu.addAction("&Quit")
         self.shortcuts.add("quit", "Quit", "Ctrl+Q", quit_action)
         quit_action.triggered.connect(self.close)
+        self.edit_menu = self.menuBar().addMenu("&Edit")
         view_menu = self.menuBar().addMenu("&View")
         view_menu.addAction("&Theme…", self.show_theme)
         help_menu = self.menuBar().addMenu("&Help")
@@ -181,13 +182,17 @@ class ExplorerWindow(QMainWindow):
         self.build_toolbar()
         self.build_actions_toolbar()
         self.file_clipboard = FileClipboard(self)
+        self.details.setItemDelegate(CutItemDelegate(self.details))
+        self.tree.setItemDelegate(CutItemDelegate(self.tree))
+        self.edit_menu.aboutToShow.connect(self.file_clipboard.show_edit_menu)
+        self.file_clipboard.show_edit_menu()
         self.item_menus = {}
         self.background_menus = {}
         for view in (self.details, self.grid):
             menu = QMenu(view)
             menu.addActions(self.file_clipboard.actions[view][:2])
-            menu.addAction("&Paste", lambda: self.file_clipboard.paste(
-                Path(self.files.navigation_path(self.model.mapToSource(next(selected_rows(self.selection)))))))
+            self.file_clipboard.context_actions[view] = menu.addAction("&Paste", lambda: self.file_clipboard.paste(
+                self.file_clipboard.context_destination()))
             menu.addAction(self.rename_actions[view])
             menu.addSeparator()
             menu.addActions([self.flatten_action, self.pack_action, self.join_action])
@@ -406,11 +411,7 @@ class ExplorerWindow(QMainWindow):
             self.selection.setCurrentIndex(index, QItemSelectionModel.SelectionFlag.ClearAndSelect
                                            | QItemSelectionModel.SelectionFlag.Rows)
         view.setFocus()
-        paste = self.item_menus[view].actions()[2]
-        destination = (self.files.navigation_path(self.model.mapToSource(next(selected_rows(self.selection))))
-                       if selected_row_count(self.selection) == 1 else "")
-        paste.setVisible(bool(destination))
-        paste.setEnabled(bool(destination) and self.file_clipboard.can_paste(Path(destination)))
+        self.file_clipboard.update()
         self.item_menus[view].popup(view.viewport().mapToGlobal(point))
 
     def show_tree_item_menu(self, point):

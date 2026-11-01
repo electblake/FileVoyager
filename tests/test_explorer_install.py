@@ -108,7 +108,7 @@ class ExplorerInstallTests(QtCase):
         self.wait_for(lambda: window.address.text() == str(folder))
         self.assertIsNone(window.action_future)
         self.assertIsNone(window.similarity_dock.future)
-        action = next(action for action in window.menuBar().actions()[2].menu().actions()
+        action = next(action for action in window.menuBar().actions()[3].menu().actions()
                       if action.text() == "Install in File Explorer")
         action.trigger()
         dialog = window.explorer_install_dialog

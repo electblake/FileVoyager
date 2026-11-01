@@ -1,8 +1,9 @@
 from PySide6.QtCore import QPoint, QSize, Qt, Signal
-from PySide6.QtWidgets import QListView, QStyle, QStyledItemDelegate, QStyleOptionViewItem
+from PySide6.QtWidgets import QListView, QStyle, QStyleOptionViewItem
+from filevoyager.clipboard import CutItemDelegate
 
 
-class GridDelegate(QStyledItemDelegate):
+class GridDelegate(CutItemDelegate):
     def sizeHint(self, option, index):
         return self.parent().gridSize()
 

@@ -4,13 +4,27 @@ from pathlib import Path
 
 from PySide6.QtCore import QMimeData, QObject, QUrl, Qt
 from PySide6.QtGui import QAction
-from PySide6.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication, QStyle, QStyledItemDelegate
 
+from filevoyager.directory_tree import path_key
 from filevoyager.item_actions import transfer_items
-from filevoyager.selection import selected_rows
+from filevoyager.selection import selected_row_count, selected_rows
 
 
 DROP_EFFECT = 'application/x-qt-windows-mime;value="Preferred DropEffect"'
+
+
+class CutItemDelegate(QStyledItemDelegate):
+    def initStyleOption(self, option, index):
+        super().initStyleOption(option, index)
+        view = self.parent()
+        window = view.window()
+        if not window.file_clipboard.cut_paths:
+            return
+        path = (window.folders.file_path(index) if view is window.tree else
+                window.files.filePath(window.model.mapToSource(index)))
+        if path_key(path) in window.file_clipboard.cut_paths:
+            option.state &= ~QStyle.StateFlag.State_Enabled
 
 
 class FileClipboard(QObject):
@@ -19,6 +33,9 @@ class FileClipboard(QObject):
         self.window = window
         self.clipboard = QApplication.clipboard()
         self.pending = None
+        self.cut_paths = set()
+        self.context_actions = {}
+        self.edit_view = window.details
         self.actions = {}
         for view in (window.details, window.grid, window.tree):
             cut = QAction("Cu&t", view)
@@ -37,12 +54,36 @@ class FileClipboard(QObject):
                 ("cut", "Cut", "Ctrl+X"), ("copy", "Copy", "Ctrl+C"), ("paste", "Paste", "Ctrl+V"))):
             window.shortcuts.add(key, label, shortcut, *(actions[number] for actions in self.actions.values()))
         self.clipboard.dataChanged.connect(self.clipboard_changed)
+        QApplication.instance().focusChanged.connect(self.focus_changed)
         self.clipboard_changed()
 
-    def clipboard_changed(self):
-        paths, _ = self.snapshot()
-        self.clipboard_sources = set(paths)
+    def focus_changed(self, old, current):
+        for view in self.actions:
+            if current is view or current is view.viewport():
+                self.edit_view = view
+
+    def show_edit_menu(self):
+        self.window.edit_menu.clear()
+        self.window.edit_menu.addActions(self.actions[self.edit_view])
         self.update()
+
+    def clipboard_changed(self):
+        paths, cut = self.snapshot()
+        self.clipboard_sources = set(paths)
+        self.clipboard_cut = cut
+        self.clipboard_parents = {path.parent for path in paths}
+        self.cut_paths = {path_key(path) for path in paths} if cut else set()
+        for view in self.actions:
+            view.viewport().update()
+        self.update()
+
+    def context_destination(self):
+        if selected_row_count(self.window.selection) == 1:
+            index = next(selected_rows(self.window.selection))
+            destination = self.window.files.navigation_path(self.window.model.mapToSource(index))
+            if destination:
+                return Path(destination)
+        return Path(self.window.current_path)
 
     def paths(self, view):
         if view is self.window.tree:
@@ -73,6 +114,7 @@ class FileClipboard(QObject):
 
     def can_paste(self, destination):
         return (self.window.action_future is None and bool(self.clipboard_sources)
+                and not (self.clipboard_cut and self.clipboard_parents == {destination})
                 and not any(path in self.clipboard_sources for path in (destination, *destination.parents)))
 
     def update(self, *args):
@@ -85,6 +127,8 @@ class FileClipboard(QObject):
             copy.setEnabled(available)
             destination_available = selected if tree else bool(self.window.current_path)
             paste.setEnabled(destination_available and self.can_paste(self.destination(view)))
+        for paste in self.context_actions.values():
+            paste.setEnabled(bool(self.window.current_path) and self.can_paste(self.context_destination()))
 
     def paste(self, destination):
         paths, cut = self.snapshot()
