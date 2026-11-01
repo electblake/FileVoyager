@@ -13,7 +13,7 @@ uv run --locked python -m unittest discover -s tests -v
 uv run python packaging\build.py 'C:\Users\shoji\AppData\Local\Programs\Inno Setup 6\ISCC.exe'
 ```
 
-Supply the actual installed compiler path. `pyproject.toml` supplies the wheel and installer version. `uv.lock` supplies all runtime versions and hashes. `uv export --locked` generates the installer requirements. The bootstrap zipapp contains only the installation script, platformdirs, and its license. Build products are ignored by Git. The output is `dist/installer/FileVoyager-Windows-x64-Setup-0.2.0.exe`.
+Supply the actual installed compiler path. `pyproject.toml` supplies the wheel and installer version. `uv.lock` supplies all runtime versions and hashes. `uv export --locked` generates the installer requirements. The bootstrap zipapp contains only the installation script, platformdirs, and its license. Build products are ignored by Git. The output is `dist/installer/FileVoyager-Windows-x64-Setup-0.3.0.exe`.
 
 ## Installation and updates
 
@@ -43,7 +43,7 @@ Silent installation: `/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /LOG="install.log
 | Qt PDF / WebEngine 6.12.0.140 | Transitive public PyPI dependencies installed with PySide6 |
 | qt-themes 0.4.1 | MIT-licensed theme palettes installed from a pinned PyPI wheel |
 | comtypes 1.4.17, NumPy 2.5.4, Pillow 13.0.0 | Public PyPI wheels installed with their native libraries, metadata and notices |
-| FileVoyager 0.2.0 | Locally built wheel, including the Spectra-derived processors and their license |
+| FileVoyager 0.3.0 | Locally built wheel, including the Spectra-derived processors and their license |
 | scikit-learn 1.9.1, SciPy 1.18.1 and their dependencies | Public PyPI wheels for vector comparisons and DBSCAN neighbor queries |
 | Windows Shell / COM / GDI | Operating-system APIs; not installed by Setup |
 
@@ -80,3 +80,5 @@ Release 0.1.7 adds configurable shortcuts, folder merge conflict prompts, and it
 Release 0.1.8 adds Alt-drag shortcuts and improves large-folder loading, scrolling, selection, and navigation. All 83 tests passed before the version bump. The release wheel matched all 31 tested source modules; bootstrap contents, unchanged dependency pins, exported hashes, Inno compilation, installer version, and SHA-256 checks passed. The installer remains unsigned; Setup and upgrade/uninstall execution were not repeated.
 
 Release 0.2.0 combines Join to Folder, persistent theme selection, Qt navigation icons, F5 refresh, and reliable updates after file actions. All 91 tests passed offscreen. The wheel matched all 32 source modules, with qt-themes 0.4.1 as the only added runtime dependency. Bootstrap contents, exported dependency hashes, Inno compilation, installer version, and SHA-256 checks passed. The installer remains unsigned; full Setup and upgrade/uninstall execution were not repeated.
+
+Release 0.3.0 adds File Explorer integration, clipboard commands, drag-to-move, and shared conflict handling. All 116 tests passed before the version-only release changes. The wheel matched all 35 tested source modules and the application icon; dependency pins were unchanged. Bootstrap contents, exported hashes, Inno compilation, installer product version, and SHA-256 checks passed. The installer remains unsigned; Setup and upgrade/uninstall execution were not repeated.

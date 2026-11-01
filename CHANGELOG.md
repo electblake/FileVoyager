@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-01
+
 ### Added
 
 - Added Help > Install in File Explorer with per-user folder, folder-background, and drive context menus, background installation, and a bundled icon.
