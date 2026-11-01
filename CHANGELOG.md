@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added F2 inline renaming in Details and Grid, with Enter to save and Escape to cancel.
+- Added Help → Keyboard Shortcuts with searchable, sortable action/default/custom columns and custom key combinations saved through QSettings.
+- Added background Pack to Folder and Flatten operations for selected items, including an optional copy mode when packing.
+- Added right-click menus for Details, Grid, and folder-tree items, reusing Flatten, Pack to Folder, and Rename operations while preserving multi-selection.
+
+### Fixed
+
+- Handled folder rename conflicts with a merge confirmation showing both folders and creation dates, followed by Replace, Skip, or Cancel prompts for duplicate files.
+- Refreshed the preview and similarity reference after renaming an item.
+
 ## [0.1.6] - 2026-11-01
 
 ### Added

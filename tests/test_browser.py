@@ -11,6 +11,7 @@ from unittest.mock import patch
 from PySide6.QtCore import QItemSelectionModel, QSettings, Qt
 from PySide6.QtGui import QImage
 from PySide6.QtTest import QTest
+from PySide6.QtWidgets import QLineEdit, QMessageBox
 from support import QtCase
 
 from filevoyager.thumbnails import ThumbnailCache, ThumbnailKey
@@ -125,6 +126,44 @@ class BrowserTests(QtCase):
         reopened.travel(1)
         self.wait_for(lambda: reopened.current_path == str(self.second))
 
+    def test_keyboard_shortcuts_menu_persists_and_rebinds_rename(self):
+        window = self.open_window()
+        help_menu = window.menuBar().actions()[1].menu()
+        help_menu.actions()[1].trigger()
+        dialog = window.shortcuts_dialog
+        self.assertTrue(dialog.isVisible())
+        self.assertEqual(dialog.model.columnCount(), 3)
+        dialog.search.setText("Rename")
+        self.assertEqual(dialog.proxy.rowCount(), 1)
+        self.assertEqual(dialog.proxy.index(0, 1).data(), "F2")
+        dialog.proxy.setData(dialog.proxy.index(0, 2), "Ctrl+Alt+R")
+        dialog.accept()
+        filename = window.preferences.settings.fileName()
+        window.close()
+        reopened = ExplorerWindow(str(self.first), image_result, preferences=FolderPreferences(
+            QSettings(filename, QSettings.Format.IniFormat)))
+        reopened.show()
+        self.addCleanup(reopened.close)
+        self.wait_for(lambda: reopened.current_path == str(self.first) and not reopened.pending_restore)
+        self.wait_for(lambda: reopened.model.rowCount(reopened.details.rootIndex()) == 601)
+        for view in (reopened.details, reopened.grid):
+            with self.subTest(view=type(view).__name__):
+                reopened.switch_view(view)
+                self.wait_for(lambda: not reopened.pending_restore)
+                index = reopened.model.index(1, 0, view.rootIndex())
+                reopened.selection.setCurrentIndex(index, QItemSelectionModel.SelectionFlag.ClearAndSelect
+                                                    | QItemSelectionModel.SelectionFlag.Rows)
+                reopened.activateWindow()
+                view.setFocus()
+                self.wait_for(view.hasFocus)
+                QTest.keyClick(view, Qt.Key.Key_F2)
+                self.assertIsNone(view.findChild(QLineEdit))
+                QTest.keyClick(view, Qt.Key.Key_R,
+                               Qt.KeyboardModifier.ControlModifier | Qt.KeyboardModifier.AltModifier)
+                editor = view.findChild(QLineEdit)
+                self.assertTrue(editor.isVisible())
+                QTest.keyClick(editor, Qt.Key.Key_Escape)
+                self.wait_for(lambda: view.findChild(QLineEdit) is None)
     def test_maximized_window_state_restores(self):
         window = self.open_window()
         window.showMaximized()
@@ -168,6 +207,111 @@ class BrowserTests(QtCase):
                     QTest.mouseClick(view.viewport(), Qt.MouseButton.LeftButton, modifier, point)
                     self.assertEqual({item.row() for item in window.selection.selectedRows(0)}, expected)
                     self.assertEqual(window.selection.currentIndex().row(), row)
+
+    def test_f2_renames_and_escape_cancels_in_details_and_grid(self):
+        folder = self.root / "rename"
+        folder.mkdir()
+        original = folder / "original.txt"
+        original.write_text("rename contents", encoding="utf-8")
+        window = self.open_window()
+        window.navigate(str(folder))
+        self.wait_for(lambda: window.current_path == str(folder) and not window.pending_restore)
+        self.wait_for(lambda: window.model.rowCount(window.details.rootIndex()) == 1)
+        for number, view in enumerate((window.details, window.grid)):
+            with self.subTest(view=type(view).__name__):
+                window.switch_view(view)
+                self.wait_for(lambda: not window.pending_restore)
+                index = window.model.index(0, 0, view.rootIndex())
+                window.selection.setCurrentIndex(index, QItemSelectionModel.SelectionFlag.ClearAndSelect
+                                                 | QItemSelectionModel.SelectionFlag.Rows)
+                window.activateWindow()
+                view.setFocus()
+                self.wait_for(view.hasFocus)
+                QTest.keyClick(view, Qt.Key.Key_F2)
+                editor = view.findChild(QLineEdit)
+                self.assertTrue(editor.isVisible())
+                editor.selectAll()
+                QTest.keyClicks(editor, "cancelled.txt")
+                QTest.keyClick(editor, Qt.Key.Key_Escape)
+                self.assertTrue(original.exists())
+                self.assertFalse((folder / "cancelled.txt").exists())
+                self.wait_for(lambda: view.findChild(QLineEdit) is None)
+                QTest.keyClick(view, Qt.Key.Key_F2)
+                editor = view.findChild(QLineEdit)
+                editor.selectAll()
+                renamed = folder / f"renamed-{number}.txt"
+                QTest.keyClicks(editor, renamed.name)
+                QTest.keyClick(editor, Qt.Key.Key_Return)
+                self.wait_for(renamed.exists)
+                self.assertFalse(original.exists())
+                self.assertEqual(renamed.read_text(encoding="utf-8"), "rename contents")
+                self.wait_for(lambda: window.model.index(0, 0, view.rootIndex()).data() == renamed.name)
+                self.assertEqual(Path(window.preview_dock.path), renamed)
+                original = renamed
+
+    def test_folder_rename_conflict_prompts_before_merging(self):
+        folder = self.root / "folder-rename-conflict"
+        source, destination = folder / "Bust", folder / "Busts"
+        source.mkdir(parents=True)
+        destination.mkdir()
+        (source / "source.txt").write_text("source")
+        (destination / "destination.txt").write_text("destination")
+        window = self.open_window()
+        window.navigate(str(folder))
+        self.wait_for(lambda: window.current_path == str(folder) and not window.pending_restore)
+        self.wait_for(lambda: window.model.rowCount(window.details.rootIndex()) == 2)
+        for view, answer in ((window.details, QMessageBox.StandardButton.No),
+                             (window.grid, QMessageBox.StandardButton.Yes)):
+            window.switch_view(view)
+            self.wait_for(lambda: not window.pending_restore)
+            index = window.model.mapFromSource(window.files.index(str(source)))
+            window.selection.setCurrentIndex(index, QItemSelectionModel.SelectionFlag.ClearAndSelect
+                                             | QItemSelectionModel.SelectionFlag.Rows)
+            window.activateWindow()
+            view.setFocus()
+            self.wait_for(view.hasFocus)
+            QTest.keyClick(view, Qt.Key.Key_F2)
+            editor = view.findChild(QLineEdit)
+            editor.selectAll()
+            QTest.keyClicks(editor, destination.name)
+            QTest.keyClick(editor, Qt.Key.Key_Return)
+            self.wait_for(lambda: window.folder_merge.dialog is not None
+                          and window.folder_merge.dialog.isVisible())
+            self.assertEqual(window.folder_merge.dialog.windowTitle(), "Confirm Folder Replace")
+            self.assertTrue((source / "source.txt").exists())
+            self.assertFalse((destination / "source.txt").exists())
+            window.folder_merge.dialog.button(answer).click()
+            self.wait_for(lambda: window.action_future is None)
+            window.folder_merge.dialog = None
+        self.assertFalse(source.exists())
+        self.assertEqual((destination / "source.txt").read_text(), "source")
+        self.assertEqual((destination / "destination.txt").read_text(), "destination")
+        self.wait_for(lambda: window.model.rowCount(window.details.rootIndex()) == 1)
+
+    def test_f2_requires_one_selection_and_item_view_focus(self):
+        window = self.open_window()
+        window.activateWindow()
+        for view in (window.details, window.grid):
+            with self.subTest(view=type(view).__name__):
+                window.switch_view(view)
+                self.wait_for(lambda: not window.pending_restore)
+                view.setFocus()
+                self.wait_for(view.hasFocus)
+                window.selection.clearSelection()
+                QTest.keyClick(view, Qt.Key.Key_F2)
+                self.assertIsNone(view.findChild(QLineEdit))
+                for row in (1, 2):
+                    index = window.model.index(row, 0, view.rootIndex())
+                    window.selection.select(index, QItemSelectionModel.SelectionFlag.Select
+                                             | QItemSelectionModel.SelectionFlag.Rows)
+                QTest.keyClick(view, Qt.Key.Key_F2)
+                self.assertIsNone(view.findChild(QLineEdit))
+                window.selection.setCurrentIndex(index, QItemSelectionModel.SelectionFlag.ClearAndSelect
+                                                 | QItemSelectionModel.SelectionFlag.Rows)
+                window.address.setFocus()
+                self.wait_for(window.address.hasFocus)
+                QTest.keyClick(window.address, Qt.Key.Key_F2)
+                self.assertIsNone(view.findChild(QLineEdit))
 
     def test_shared_selection_sort_and_history(self):
         window = self.open_window()
