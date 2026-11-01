@@ -13,7 +13,7 @@ uv run --locked python -m unittest discover -s tests -v
 uv run python packaging\build.py 'C:\Users\shoji\AppData\Local\Programs\Inno Setup 6\ISCC.exe'
 ```
 
-Supply the actual installed compiler path. `pyproject.toml` supplies the wheel and installer version. `uv.lock` supplies all runtime versions and hashes. `uv export --locked` generates the installer requirements. The bootstrap zipapp contains only the installation script, platformdirs, and its license. Build products are ignored by Git. The output is `dist/installer/FileVoyager-Windows-x64-Setup-0.1.7.exe`.
+Supply the actual installed compiler path. `pyproject.toml` supplies the wheel and installer version. `uv.lock` supplies all runtime versions and hashes. `uv export --locked` generates the installer requirements. The bootstrap zipapp contains only the installation script, platformdirs, and its license. Build products are ignored by Git. The output is `dist/installer/FileVoyager-Windows-x64-Setup-0.1.8.exe`.
 
 ## Installation and updates
 
@@ -42,7 +42,7 @@ Silent installation: `/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /LOG="install.log
 | Qt for Python Community 6.12.0 | Public PyPI PySide6, Essentials, Addons and shiboken6; metadata declares LGPL/GPL licensing |
 | Qt PDF / WebEngine 6.12.0.140 | Transitive public PyPI dependencies installed with PySide6 |
 | comtypes 1.4.17, NumPy 2.5.4, Pillow 13.0.0 | Public PyPI wheels installed with their native libraries, metadata and notices |
-| FileVoyager 0.1.7 | Locally built wheel, including the Spectra-derived processors and their license |
+| FileVoyager 0.1.8 | Locally built wheel, including the Spectra-derived processors and their license |
 | scikit-learn 1.9.1, SciPy 1.18.1 and their dependencies | Public PyPI wheels for vector comparisons and DBSCAN neighbor queries |
 | Windows Shell / COM / GDI | Operating-system APIs; not installed by Setup |
 
@@ -75,3 +75,5 @@ Release 0.1.5 adds Preview Detail with video playback and seeking, thumbnail-bas
 Release 0.1.6 adds the platformdirs-managed FFmpeg shared runtime and faster regression suite. All 54 tests passed before the version bump; the release wheel has identical application payloads and dependency pins to that tested build. Wheel/source matching, bootstrap contents, lock consistency, Inno compilation, installer version, and SHA-256 checks passed. The installer remains unsigned. The isolated bootstrap lifecycle was tested; full Setup execution was not performed.
 
 Release 0.1.7 adds configurable shortcuts, folder merge conflict prompts, and item context menus with Pack to Folder and Flatten. All 72 tests passed offscreen. Source launch imports, wheel/source matching, bootstrap contents, unchanged dependency pins, Inno compilation, and installer version checks passed. The installer remains unsigned; Setup and upgrade/uninstall execution were not performed. The release includes an installer SHA-256 checksum asset.
+
+Release 0.1.8 adds Alt-drag shortcuts and improves large-folder loading, scrolling, selection, and navigation. All 83 tests passed before the version bump. The release wheel matched all 31 tested source modules; bootstrap contents, unchanged dependency pins, exported hashes, Inno compilation, installer version, and SHA-256 checks passed. The installer remains unsigned; Setup and upgrade/uninstall execution were not repeated.
