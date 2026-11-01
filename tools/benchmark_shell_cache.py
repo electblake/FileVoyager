@@ -1,4 +1,4 @@
-"""Measure existing Shell thumbnails only; never request extraction or decode files."""
+"""Measure Windows Shell thumbnail retrieval and generation through registered handlers."""
 
 import argparse
 from concurrent.futures import ThreadPoolExecutor
@@ -43,8 +43,8 @@ def main():
     report = {
         "folder": str(args.folder), "files": len(paths), "suffixes": sorted(suffixes),
         "requested_pixels": args.size,
-        "flags": "0x18", "workers": 2, "enumeration_ms": enumeration_ms,
-        "scope": "Existing Windows Shell cache only. First pass is process-cold, not OS-cache-cold; no cache eviction or thumbnail generation.",
+        "flags": "0x08", "workers": 2, "enumeration_ms": enumeration_ms,
+        "scope": "Windows Shell retrieval and generation. First pass is process-cold, not necessarily OS-cache-cold; no cache eviction.",
         "passes": [],
     }
     failed_futures = []

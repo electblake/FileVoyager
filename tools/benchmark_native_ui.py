@@ -1,7 +1,7 @@
-"""Exercise the real cache-only service and Qt event loop against existing files.
+"""Exercise the real Shell thumbnail service and Qt event loop against existing files.
 
 uv run python tools/benchmark_native_ui.py "C:\\Users\\shoji\\Pictures\\Screenshots"
-No source decoding, cache warming, generated thumbnails, or alternate provider.
+Windows generates missing thumbnails; no application decoder or alternate provider.
 """
 
 import argparse
@@ -44,7 +44,7 @@ class NativeBenchmark:
         self.scroll_calls = []
         self.results = []
         self.started = time.perf_counter()
-        self.metrics = {"scope": "Real cache-only Shell service; no generation; first visit is not an OS cold-cache flush",
+        self.metrics = {"scope": "Real Shell service with Windows generation; first visit is not an OS cold-cache flush",
                         "folder": self.path}
         preferences = FolderPreferences(QSettings(str(Path(".benchmarks") / f"{prefix}-settings.ini"), QSettings.Format.IniFormat))
         preferences.save(self.path, {"view": "details", "size": 128, "grid": [0, 0], "details": [0, 0]})

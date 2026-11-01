@@ -1,4 +1,4 @@
-"""Windows Shell cache-only thumbnails. Call from an MTA worker, never paint/data()."""
+"""Windows Shell thumbnails with system-managed generation and caching. Call from an MTA worker, never paint/data()."""
 
 from ctypes import (
     OleDLL, WinDLL, POINTER, Structure, byref, cast, c_int, c_ubyte,
@@ -48,7 +48,7 @@ class _IShellItemImageFactory(IUnknown):
     )]
 
 
-_CACHE_ONLY_THUMBNAIL = 0x00000010 | 0x00000008
+_THUMBNAIL_ONLY = 0x00000008
 _shell32 = OleDLL("shell32")
 _gdi32 = WinDLL("gdi32", use_last_error=True)
 _create_item = _shell32.SHCreateItemFromParsingName
@@ -118,7 +118,7 @@ def _copy_bitmap(bitmap: int) -> ThumbnailPixels:
 
 
 def load_cached_thumbnail(path: str, width: int, height: int) -> ThumbnailPixels:
-    """Retrieve only an existing Shell thumbnail, with no icon or extraction path.
+    """Retrieve or generate a Shell thumbnail, using the Windows cache and no icons.
 
     The calling worker must be uninitialized for COM or already in the MTA.
     Each call balances its own initialization. Native failures propagate.
@@ -129,7 +129,7 @@ def load_cached_thumbnail(path: str, width: int, height: int) -> ThumbnailPixels
         factory = POINTER(_IShellItemImageFactory)()
         _create_item(path, None, byref(_IShellItemImageFactory._iid_), byref(factory))
         try:
-            bitmap = factory.GetImage(_SIZE(width, height), _CACHE_ONLY_THUMBNAIL)
+            bitmap = factory.GetImage(_SIZE(width, height), _THUMBNAIL_ONLY)
         finally:
             # Release before CoUninitialize even if a traceback retains factory.
             # Null the owning comtypes pointer to prevent its destructor releasing twice.

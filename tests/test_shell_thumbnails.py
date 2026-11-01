@@ -1,4 +1,4 @@
-"""Windows native tests; no thumbnail extraction or source decoder is used."""
+"""Windows native tests, including real Shell extraction and system cache reuse."""
 
 from concurrent.futures import ThreadPoolExecutor
 from ctypes import POINTER, WinDLL, byref, c_void_p, memmove, sizeof
@@ -49,7 +49,7 @@ class ShellThumbnailTests(unittest.TestCase):
         cls.temp = tempfile.TemporaryDirectory(prefix="filevoyager-native-")
         cls.addClassCleanup(cls.temp.cleanup)
         cls.path = Path(cls.temp.name) / "uncached.bmp"
-        # Valid, unique source file used only as a Shell item. Never request extraction.
+        # Valid source file used for native Shell requests.
         header = struct.pack("<2sIHHI", b"BM", 54 + len(_PIXELS), 0, 0, 54)
         dib = struct.pack("<IiiHHIIiiII", 40, 2, -2, 1, 24, 0, len(_PIXELS), 0, 0, 0, 0)
         cls.path.write_bytes(header + dib + _PIXELS)
@@ -71,18 +71,26 @@ class ShellThumbnailTests(unittest.TestCase):
         self.assertEqual(result.pixels[:6], _PIXELS[:6])
         self.assertEqual(result.pixels[8:14], _PIXELS[8:14])
 
-    def test_cache_miss_propagates_and_does_not_populate_cache(self):
+    def test_uncached_thumbnail_is_generated_and_saved_in_windows_cache(self):
+        path = self.path.with_name("generation.bmp")
         before = self.path.read_bytes()
-        for _ in range(2):
+        path.write_bytes(before)
+        with patch.object(shell, "_THUMBNAIL_ONLY", 0x18):
             with self.assertRaises(COMError):
-                self.load()
-        self.assertEqual(self.path.read_bytes(), before)
+                self.executor.submit(shell.load_cached_thumbnail, str(path), 96, 64).result()
+        generated = self.executor.submit(shell.load_cached_thumbnail, str(path), 96, 64).result()
+        with patch.object(shell, "_THUMBNAIL_ONLY", 0x18):
+            cached = self.executor.submit(shell.load_cached_thumbnail, str(path), 96, 64).result()
+        self.assertGreater(generated.width, 0)
+        self.assertGreater(generated.height, 0)
+        self.assertEqual((cached.width, cached.height), (generated.width, generated.height))
+        self.assertEqual(path.read_bytes(), before)
 
     def test_missing_path_propagates_native_failure(self):
         with self.assertRaises(OSError):
             self.executor.submit(shell.load_cached_thumbnail, str(self.path.with_name("missing.bmp")), 96, 64).result()
 
-    def test_exact_cache_flags_and_bitmap_cleanup(self):
+    def test_exact_thumbnail_flags_and_bitmap_cleanup(self):
         handles = []
         requests = []
 
@@ -93,7 +101,7 @@ class ShellThumbnailTests(unittest.TestCase):
 
         with patch.object(POINTER(shell._IShellItemImageFactory), "GetImage", get_image):
             result = self.load()
-        self.assertEqual(requests, [(96, 64, 0x18)])
+        self.assertEqual(requests, [(96, 64, 0x08)])
         self.assertEqual(result.pixels[:6], _PIXELS[:6])
         with self.assertRaises(OSError):
             shell._copy_bitmap(handles[0])

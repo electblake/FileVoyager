@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Enabled thumbnail generation through Windows Shell `GetImage`, letting Windows cache missing thumbnails while preserving bounded background scheduling.
+
 ## [0.1.7] - 2026-11-01
 
 ### Added

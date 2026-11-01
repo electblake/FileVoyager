@@ -29,7 +29,7 @@ This initial application browses folders. File opening, copy/move/delete, native
 
 ## Thumbnail contract
 
-The production image/video grid uses only the [Windows thumbnail service](docs/thumbnail-service.md), owned by the thumbnail-service workstream. It reads existing Shell thumbnails using flags `0x18`. It does not decode originals, generate thumbnails, warm the Windows cache, or substitute file icons for missing media thumbnails. Normal folder and non-media file icons remain available.
+The production image/video grid uses only the [Windows thumbnail service](docs/thumbnail-service.md), owned by the thumbnail-service workstream. It requests Shell thumbnails using `SIIGBF_THUMBNAILONLY` (`0x08`). Windows retrieves cached thumbnails or generates and caches missing thumbnails through its registered handlers. FileVoyager does not decode originals itself or substitute file icons for missing media thumbnails. Normal folder and non-media file icons remain available.
 
 Uncached images produce the original native exception. PySide6 prints exceptions raised in Qt callbacks to the launching console; its event loop continues. Those cells remain undecorated. There is no custom error dialog or recovery provider. Automatic viewport refresh does not retry a failed request within that navigation/view generation. Native cache availability is required for populated image cells.
 
