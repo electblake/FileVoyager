@@ -14,9 +14,13 @@ uv run filevoyager
 uv run filevoyager 'C:\Users\shoji\Pictures\Screenshots'
 ```
 
-The app opens the supplied folder or your home directory. Unvisited folders containing a supported image or video file default to **Grid**; other folders default to **Details**. A saved folder preference takes precedence. Choose Small, Medium, or Large thumbnails. Click the folder tree or activate a directory in either content view to navigate. Back/Forward/Up use Alt+Left, Alt+Right, and Alt+Up. Ctrl+L focuses the editable address field. Details headers control sorting in both content views; selection survives view switches.
+The app opens the supplied folder or the last visited folder; the first launch opens your home directory. Unvisited folders containing a supported image or video file default to **Grid**; other folders default to **Details**. A saved folder preference takes precedence. Choose Small, Medium, or Large thumbnails. Click the folder tree or activate a directory in either content view to navigate. Back/Forward/Up use Alt+Left, Alt+Right, and Alt+Up. Ctrl+L focuses the editable address field. Details headers control sorting in both content views; selection survives view switches.
 
 Each folder remembers its view, thumbnail size, and separate Details/Grid scroll positions. State is saved when leaving a folder or closing the window, including across application launches. Restoration waits for asynchronous loading/layout, and Qt clamps the saved position if the folder has become smaller. Media detection runs on the navigation worker; it does not decode files.
+
+Window position, size, maximized state, dock/toolbar layout and visibility, pane sizes, details columns and sort order, similarity controls, and Back/Forward history are saved on close and restored on launch through QSettings. Explicit launch paths start a new navigation history. Active analysis and video playback remain session-only.
+
+The [Preview Detail dock](docs/preview-detail.md) shows a thumbnail and Windows file/media properties for the selected item. Video previews include Play/Pause and a seek slider. Ctrl+Shift+P toggles the dock.
 
 `platformdirs` supplies the user configuration location, which is registered as QSettings' user-scope INI default. On Windows the settings file is `%LOCALAPPDATA%\FileVoyager\FileVoyager.ini`. Folder paths are normalized and hashed as keys. Tests and benchmarks use isolated INI files rather than modifying these preferences.
 
@@ -41,11 +45,11 @@ The adapter normalizes Qt's forward-slash paths to Windows native paths and conv
 - Thumbnail arrivals repaint affected grid cells without resetting or relaying out the model.
 - Filesystem path resolution occurs on a separate navigation worker; rapid navigation keeps only the newest pending destination.
 
-The shared filesystem source sorts both content views. This version uses Qt's file sorting, not a custom implementation of every Explorer sort convention. Supported image/video extensions are listed in `filevoyager/models.py`. Videos display their existing static Shell thumbnail; playback and arbitrary Shell thumbnail types are outside this initial scope.
+The shared filesystem source sorts both content views. This version uses Qt's file sorting, not a custom implementation of every Explorer sort convention. Supported image/video extensions are listed in `filevoyager/models.py`. Videos display their existing static Shell thumbnail in the grid and support playback in the Preview Detail dock. Arbitrary Shell thumbnail types are outside this initial scope.
 
 ## Standalone image processors
 
-[Image processors](filevoyager/image_processors/README.md) expose Spectra-derived image feature functions and a uniform callable interface for future extractors. They use NumPy and Pillow. The [Image similarity dock](docs/image-similarity.md) uses them for background comparison and DBSCAN sorting; thumbnail rendering continues to use the Windows Shell service.
+[Image processors](filevoyager/image_processors/README.md) expose Spectra-derived image feature functions and a uniform callable interface for future extractors. They use NumPy and Pillow. The [Media similarity dock](docs/image-similarity.md) analyzes existing image and video thumbnails for background comparison and DBSCAN sorting; thumbnail rendering continues to use the Windows Shell service.
 
 ## Verification
 

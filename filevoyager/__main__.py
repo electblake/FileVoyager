@@ -1,6 +1,5 @@
 import argparse
 import sys
-from pathlib import Path
 
 from PySide6.QtWidgets import QApplication
 
@@ -10,7 +9,7 @@ from filevoyager.shell_bridge import load_thumbnail_image
 
 def main():
     parser = argparse.ArgumentParser(description="FileVoyager")
-    parser.add_argument("folder", nargs="?", default=str(Path.home()))
+    parser.add_argument("folder", nargs="?")
     args = parser.parse_args()
     app = QApplication(sys.argv[:1])
     app.setApplicationName("FileVoyager")

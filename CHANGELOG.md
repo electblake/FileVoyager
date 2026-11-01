@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.5] - 2026-11-01
+
+### Added
+
+- Added a movable Preview Detail dock with background thumbnail and Windows file/media property loading.
+- Added inline video playback, play/pause controls, and paused-frame seeking in the preview dock.
+- Remembered the last folder across launches, with explicit launch paths taking precedence.
+- Saved and restored window geometry, maximized state, dock and toolbar layout, pane sizes, details columns and sorting, similarity controls, and navigation history through QSettings.
+
+### Fixed
+
+- Changed similarity sorting to analyze existing Windows Shell thumbnails for all grid-supported media, including videos, instead of decoding image originals.
+- Enabled videos as comparison references and renamed the dock and controls to Media similarity.
+
 ## [0.1.4] - 2026-10-31
 
 ### Added
@@ -22,7 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Added File → Quit, saving QSettings before shutdown, and Help → Check for updates with GitHub release checks, download progress, and staged update buttons.
+- Added File â†’ Quit, saving QSettings before shutdown, and Help â†’ Check for updates with GitHub release checks, download progress, and staged update buttons.
 - Added an installer handoff that waits for both FileVoyager and its installed launcher to exit before starting Setup.
 
 ## [0.1.2] - 2026-10-31

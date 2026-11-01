@@ -5,14 +5,13 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from PIL import Image
+from PySide6.QtGui import QColor, QImage
 from PySide6.QtCore import QItemSelectionModel, QSettings, Qt
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QApplication
 
 from filevoyager.preferences import FolderPreferences
 from filevoyager.window import ExplorerWindow
-from test_browser import image_result
 
 
 class SimilarityDockTests(unittest.TestCase):
@@ -26,13 +25,21 @@ class SimilarityDockTests(unittest.TestCase):
         self.root = Path(self.temp.name)
         self.images = self.root / "images"
         self.images.mkdir()
-        for name, color in [("a.png", "red"), ("b.png", "blue"), ("c.png", "red"), ("d.png", "blue"), ("e.png", "green")]:
-            with Image.new("RGB", (40, 20), color) as image:
-                image.save(self.images / name)
+        for name, color in [("a.mp4", "red"), ("b.mkv", "blue"), ("c.MOV", "red"), ("d.webm", "blue"), ("e.avi", "green")]:
+            (self.images / name).write_bytes(b"media original must not be read")
         (self.images / "folder").mkdir()
         (self.images / "text.txt").touch()
         preferences = FolderPreferences(QSettings(str(self.root / "settings.ini"), QSettings.Format.IniFormat))
-        self.window = ExplorerWindow(str(self.images), image_result, preferences=preferences)
+        self.thumbnail_threads = []
+        colors = {"a.mp4": "red", "b.mkv": "blue", "c.MOV": "red", "d.webm": "blue", "e.avi": "green"}
+
+        def thumbnail(path, width, height):
+            self.thumbnail_threads.append(get_ident())
+            image = QImage(41, 20, QImage.Format.Format_RGB888)
+            image.fill(QColor(colors[Path(path).name]))
+            return image
+
+        self.window = ExplorerWindow(str(self.images), thumbnail, preferences=preferences)
         self.window.show()
         self.addCleanup(self.window.close)
         self.wait_for(lambda: self.window.model.rowCount(self.window.details.rootIndex()) == 7)
@@ -53,22 +60,25 @@ class SimilarityDockTests(unittest.TestCase):
         window = self.window
         dock = window.similarity_dock
         self.assertEqual(window.dockWidgetArea(dock), Qt.DockWidgetArea.RightDockWidgetArea)
-        index = window.model.mapFromSource(window.files.index(str(self.images / "c.png")))
+        index = window.model.mapFromSource(window.files.index(str(self.images / "c.MOV")))
         window.selection.setCurrentIndex(index, QItemSelectionModel.SelectionFlag.ClearAndSelect | QItemSelectionModel.SelectionFlag.Rows)
         dock.eps.setValue(0.001)
         dock.min_samples.setValue(2)
         dock.cluster_button.click()
         self.assertFalse(dock.cluster_button.isEnabled())
         self.wait_for(lambda: dock.future is None)
-        self.assertEqual(self.names(), ["folder", "a.png", "c.png", "b.png", "d.png", "e.png", "text.txt"])
-        self.assertEqual(window.selection.currentIndex().data(), "c.png")
+        self.assertEqual(self.names(), ["folder", "a.mp4", "c.MOV", "b.mkv", "d.webm", "e.avi", "text.txt"])
+        self.assertEqual(window.selection.currentIndex().data(), "c.MOV")
         self.assertIs(window.grid.model(), window.details.model())
         self.assertIn("2 clusters", dock.status.text())
+        self.assertIn("5 media items", dock.status.text())
+        self.assertTrue(dock.compare_button.isEnabled())
+        self.assertTrue(all(thread != get_ident() for thread in self.thumbnail_threads))
         dock.compare_button.click()
         self.wait_for(lambda: dock.future is None)
-        self.assertEqual(self.names()[1:3], ["a.png", "c.png"])
+        self.assertEqual(self.names()[1:3], ["a.mp4", "c.MOV"])
         dock.clear_button.click()
-        self.assertEqual(self.names(), ["folder", "a.png", "b.png", "c.png", "d.png", "e.png", "text.txt"])
+        self.assertEqual(self.names(), ["folder", "a.mp4", "b.mkv", "c.MOV", "d.webm", "e.avi", "text.txt"])
         window.details.sortByColumn(0, Qt.SortOrder.DescendingOrder)
         self.assertIsNone(window.model.ranks)
         dock.setFloating(True)
@@ -84,7 +94,7 @@ class SimilarityDockTests(unittest.TestCase):
         started = Event()
         thread_ids = []
 
-        def analyze(folder, settings, reference, cancel, progress):
+        def analyze(folder, settings, reference, cancel, progress, load_thumbnail):
             thread_ids.append(get_ident())
             started.set()
             cancel.wait(10)

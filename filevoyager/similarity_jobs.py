@@ -5,8 +5,7 @@ from functools import partial
 from pathlib import Path
 import os
 
-IMAGE_SUFFIXES = frozenset({".jpg", ".jpeg", ".png", ".webp", ".bmp", ".tif", ".tiff",
-                            ".gif", ".avif", ".heic", ".heif", ".jxl"})
+from filevoyager.models import MEDIA_SUFFIXES
 
 
 @dataclass(frozen=True)
@@ -30,9 +29,10 @@ class AnalysisResult:
     distances: tuple
 
 
-def analyze_folder(folder, settings, reference, cancel, progress):
+def analyze_folder(folder, settings, reference, cancel, progress, load_thumbnail):
     import numpy as np
     from PIL import Image
+    from PySide6.QtGui import QImage
     from filevoyager.image_processors import ImageFeatureExtractor, extract_visual_features
     from filevoyager.image_processors.similarity import (
         EUCLIDEAN_COMPARISON, VectorClusterer, dbscan_labels,
@@ -40,7 +40,7 @@ def analyze_folder(folder, settings, reference, cancel, progress):
 
     with os.scandir(folder) as entries:
         paths = tuple(sorted((entry.path.replace("\\", "/") for entry in entries
-                              if Path(entry.name).suffix.lower() in IMAGE_SUFFIXES and entry.is_file()),
+                              if Path(entry.name).suffix.lower() in MEDIA_SUFFIXES and entry.is_file()),
                              key=lambda path: (path.casefold(), path)))
     if not paths:
         return AnalysisResult((), (), 0, 0, ())
@@ -51,20 +51,22 @@ def analyze_folder(folder, settings, reference, cancel, progress):
     for index, path in enumerate(paths):
         if cancel.is_set():
             return None
-        progress.state = ("Extracting images", index, len(paths))
-        with Image.open(path) as image:
+        progress.state = ("Analyzing thumbnails", index, len(paths))
+        thumbnail = load_thumbnail(path, 128, 128).convertToFormat(QImage.Format.Format_RGB888)
+        with Image.frombytes("RGB", (thumbnail.width(), thumbnail.height()),
+                             bytes(thumbnail.constBits()), "raw", "RGB", thumbnail.bytesPerLine(), 1) as image:
             vectors[index] = extractor(image)
     if cancel.is_set():
         return None
     if reference is not None:
-        progress.state = ("Comparing images", 0, len(paths))
+        progress.state = ("Comparing media", 0, len(paths))
         distances = EUCLIDEAN_COMPARISON(vectors[paths.index(reference)], vectors)
         order = np.argsort(distances, kind="stable")
         return AnalysisResult(paths, tuple(int(i) for i in order), 0, 0, tuple(distances))
-    progress.state = ("Clustering images", 0, len(paths))
+    progress.state = ("Clustering media", 0, len(paths))
 
     def cluster_progress(completed, total):
-        progress.state = ("Clustering images", completed, total)
+        progress.state = ("Clustering media", completed, total)
 
     clusterer = VectorClusterer("dbscan.euclidean", partial(dbscan_labels, eps=settings.eps,
                                                            min_samples=settings.min_samples))

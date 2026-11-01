@@ -61,7 +61,7 @@ At least one family must be enabled, and its combined weighted vector must have 
 
 Pixel-based families independently convert the image and resize to 100 x 100 with LANCZOS, passing `reducing_gap` to Pillow. Geometry uses the original size. Conversion precedes resizing and can allocate a full-size intermediate. No EXIF orientation correction or explicit alpha compositing is added. The default 4 x 4 spatial grid divides 100 evenly; other grid sizes use integer cell dimensions.
 
-The extraction functions are synchronous and provide no scheduling or image cache. The Image similarity dock schedules extraction and clustering on its analysis worker, outside painting and synchronous model access. See the project documentation in docs/image-similarity.md for UI behavior and performance validation.
+The extraction functions are synchronous and provide no scheduling or image cache. The Media similarity dock receives existing image/video thumbnail pixels from the grid's cache-only Shell loader and schedules extraction and clustering on its analysis worker, outside painting and synchronous model access. See the project documentation in docs/image-similarity.md for UI behavior and performance validation.
 
 ## Provenance
 

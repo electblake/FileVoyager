@@ -13,7 +13,7 @@ uv run --locked python -m unittest discover -s tests -v
 uv run python packaging\build.py 'C:\Users\shoji\AppData\Local\Programs\Inno Setup 6\ISCC.exe'
 ```
 
-Supply the actual installed compiler path. `pyproject.toml` supplies the wheel and installer version. `uv.lock` supplies all runtime versions and hashes. `uv export --locked` generates the installer requirements. The bootstrap zipapp contains only the installation script, platformdirs, and its license. Build products are ignored by Git. The output is `dist/installer/FileVoyager-Windows-x64-Setup-0.1.4.exe`.
+Supply the actual installed compiler path. `pyproject.toml` supplies the wheel and installer version. `uv.lock` supplies all runtime versions and hashes. `uv export --locked` generates the installer requirements. The bootstrap zipapp contains only the installation script, platformdirs, and its license. Build products are ignored by Git. The output is `dist/installer/FileVoyager-Windows-x64-Setup-0.1.5.exe`.
 
 ## Installation and updates
 
@@ -39,7 +39,7 @@ Silent installation: `/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /LOG="install.log
 | Qt for Python Community 6.12.0 | Public PyPI PySide6, Essentials, Addons and shiboken6; metadata declares LGPL/GPL licensing |
 | Qt PDF / WebEngine 6.12.0.140 | Transitive public PyPI dependencies installed with PySide6 |
 | comtypes 1.4.17, NumPy 2.5.4, Pillow 13.0.0 | Public PyPI wheels installed with their native libraries, metadata and notices |
-| FileVoyager 0.1.4 | Locally built wheel, including the Spectra-derived processors and their license |
+| FileVoyager 0.1.5 | Locally built wheel, including the Spectra-derived processors and their license |
 | scikit-learn 1.9.1, SciPy 1.18.1 and their dependencies | Public PyPI wheels for vector comparisons and DBSCAN neighbor queries |
 | Windows Shell / COM / GDI | Operating-system APIs; not installed by Setup |
 
@@ -62,3 +62,5 @@ The 0.1.1 unsigned installer is 2,632,406 bytes, SHA-256 `4da45cb18e6d01a6cf50f1
 Release 0.1.2 changes version metadata only. Its wheel contents and runtime dependency lock were compared with 0.1.1, and its installer was compiled without launching the application or running installation again. Each GitHub release includes its own SHA-256 checksum asset.
 
 Release 0.1.4 includes the similarity dock and DBSCAN sorting. All 46 tests passed with the offscreen Qt platform; the staged wheel matched project sources, all exported dependencies were pinned with hashes, and Inno Setup compilation and version checks passed. No installer execution or upgrade/uninstall lifecycle testing was performed for this release. The release includes an installer SHA-256 checksum asset.
+
+Release 0.1.5 adds Preview Detail with video playback and seeking, thumbnail-based media similarity, and QSettings application-state restoration. All 54 tests passed with the offscreen Qt platform. Wheel/source matching, metadata, locked dependency hashes, Inno Setup compilation, and installer product-version checks passed. The installer remains unsigned; no installer execution or upgrade/uninstall lifecycle testing was performed for this release. The release includes an installer SHA-256 checksum asset.

@@ -1,4 +1,4 @@
-"""Explicitly started, single-job image analysis in a movable Qt dock."""
+"""Explicitly started, single-job media thumbnail analysis in a movable Qt dock."""
 
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -11,16 +11,18 @@ from PySide6.QtWidgets import (
 )
 
 from filevoyager.similarity_jobs import (
-    AnalysisProgress, AnalysisSettings, IMAGE_SUFFIXES, analyze_folder,
+    AnalysisProgress, AnalysisSettings, analyze_folder,
 )
+from filevoyager.models import MEDIA_SUFFIXES
 
 
 class SimilarityDock(QDockWidget):
     orderReady = Signal(object)
     clearRequested = Signal()
 
-    def __init__(self, parent=None):
-        super().__init__("Image similarity", parent)
+    def __init__(self, load_thumbnail, parent=None):
+        super().__init__("Media similarity", parent)
+        self.load_thumbnail = load_thumbnail
         self.setObjectName("imageSimilarityDock")
         self.folder = ""
         self.reference = None
@@ -33,7 +35,7 @@ class SimilarityDock(QDockWidget):
         self.timer.timeout.connect(self.poll)
         body = QWidget()
         layout = QVBoxLayout(body)
-        description = QLabel("Read images in this folder to sort by visual similarity or DBSCAN groups.")
+        description = QLabel("Compare existing image and video thumbnails in this folder to sort by similarity or DBSCAN groups.")
         description.setWordWrap(True)
         layout.addWidget(description)
         self.parameters = QGroupBox("Clustering")
@@ -49,7 +51,7 @@ class SimilarityDock(QDockWidget):
         self.min_samples = QSpinBox()
         self.min_samples.setRange(1, 1000000)
         self.min_samples.setValue(3)
-        self.min_samples.setToolTip("Neighbors required for a core image, including the image itself. Noise is sorted after clusters.")
+        self.min_samples.setToolTip("Neighbors required for a core media item, including the item itself. Noise is sorted after clusters.")
         form.addRow("Minimum neighbors", self.min_samples)
         layout.addWidget(self.parameters)
         self.features = QGroupBox("Feature weights")
@@ -72,10 +74,10 @@ class SimilarityDock(QDockWidget):
         self.cluster_button = QPushButton("Cluster and sort")
         self.cluster_button.clicked.connect(lambda: self.start(None))
         layout.addWidget(self.cluster_button)
-        self.reference_label = QLabel("Select one image to compare.")
+        self.reference_label = QLabel("Select one media item to compare.")
         self.reference_label.setWordWrap(True)
         layout.addWidget(self.reference_label)
-        self.compare_button = QPushButton("Sort by selected image")
+        self.compare_button = QPushButton("Sort by selected media")
         self.compare_button.clicked.connect(lambda: self.start(self.reference))
         layout.addWidget(self.compare_button)
         self.cancel_button = QPushButton("Cancel analysis")
@@ -116,8 +118,8 @@ class SimilarityDock(QDockWidget):
         self.update_actions()
 
     def set_selection(self, paths):
-        self.reference = paths[0] if len(paths) == 1 and Path(paths[0]).suffix.lower() in IMAGE_SUFFIXES else None
-        self.reference_label.setText("Reference: " + Path(self.reference).name if self.reference else "Select one image to compare.")
+        self.reference = paths[0] if len(paths) == 1 and Path(paths[0]).suffix.lower() in MEDIA_SUFFIXES else None
+        self.reference_label.setText("Reference: " + Path(self.reference).name if self.reference else "Select one media item to compare.")
         self.update_actions()
 
     def start(self, reference):
@@ -125,8 +127,8 @@ class SimilarityDock(QDockWidget):
         self.progress = AnalysisProgress()
         settings = AnalysisSettings(tuple(spin.value() for spin in self.weights), self.eps.value(), self.min_samples.value())
         self.future = self.executor.submit(analyze_folder, self.folder, settings, reference,
-                                           self.cancel_event, self.progress)
-        self.status.setText("Starting image analysis…")
+                                           self.cancel_event, self.progress, self.load_thumbnail)
+        self.status.setText("Starting thumbnail analysis…")
         self.progress_bar.setRange(0, 0)
         self.update_actions()
         self.timer.start()
@@ -158,11 +160,11 @@ class SimilarityDock(QDockWidget):
             return
         self.orderReady.emit(result)
         if not result.paths:
-            self.status.setText("No images in this folder.")
+            self.status.setText("No media items in this folder.")
         elif result.distances:
-            self.status.setText(f"Sorted {len(result.paths):,} images by distance to the selected image.")
+            self.status.setText(f"Sorted {len(result.paths):,} media items by distance to the selected thumbnail.")
         else:
-            self.status.setText(f"{len(result.paths):,} images · {result.clusters:,} clusters · {result.noise:,} noise images")
+            self.status.setText(f"{len(result.paths):,} media items · {result.clusters:,} clusters · {result.noise:,} noise items")
 
     def shutdown(self):
         self.cancel_event.set()

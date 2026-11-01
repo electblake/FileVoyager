@@ -3,6 +3,10 @@ from pathlib import Path
 from threading import Event
 import tempfile
 import unittest
+from unittest.mock import patch
+
+from PySide6.QtGui import QColor, QImage
+from filevoyager.models import MEDIA_SUFFIXES
 
 import numpy as np
 from sklearn.cluster import DBSCAN
@@ -48,32 +52,64 @@ class SimilarityTests(unittest.TestCase):
         self.assertIsNone(result)
         self.assertEqual(completed, [(1, 100)])
 
-    def test_folder_jobs_use_configured_weights_and_release_images(self):
-        from PIL import Image
+    def test_mixed_media_uses_thumbnail_pixels_for_clustering_and_comparison(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
-            for name, color in [("a.png", "red"), ("b.png", "blue"), ("c.png", "red"), ("d.png", "blue"), ("e.png", "green")]:
-                with Image.new("RGB", (40, 20), color) as image:
-                    image.save(root / name)
-            (root / "text.txt").write_text("other file")
-            (root / "folder.png").mkdir()
-            settings = AnalysisSettings(eps=0.001, min_samples=2)
-            result = analyze_folder(directory, settings, None, Event(), AnalysisProgress())
-            self.assertEqual([Path(result.paths[i]).name for i in result.order], ["a.png", "c.png", "b.png", "d.png", "e.png"])
-            self.assertEqual((result.clusters, result.noise), (2, 1))
-            reference = (root / "c.png").as_posix()
-            nearest = analyze_folder(directory, settings, reference, Event(), AnalysisProgress())
-            self.assertEqual([Path(nearest.paths[i]).name for i in nearest.order[:2]], ["a.png", "c.png"])
-            geometry = analyze_folder(directory, AnalysisSettings(weights=(0, 0, 0, 0, 0, 1), eps=0.001),
-                                      None, Event(), AnalysisProgress())
-            self.assertEqual((geometry.clusters, geometry.noise), (1, 0))
-            for file in root.glob("*.png"):
-                if file.is_file():
-                    file.unlink()
+            colors = {"a.mp4": "red", "b.png": "blue", "c.MKV": "red", "d.mov": "blue", "e.webp": "green"}
+            for name in colors:
+                (root / name).write_bytes(b"original media must not be decoded")
+            (root / "text.txt").touch()
+            (root / "folder.mp4").mkdir()
+            calls = []
 
-    def test_worker_failure_surfaces_without_substitute(self):
-        from PIL import UnidentifiedImageError
+            def thumbnail(path, width, height):
+                calls.append((Path(path).name, width, height))
+                # Odd width exercises padded RGB888 rows during conversion.
+                image = QImage(41, 20, QImage.Format.Format_RGB888)
+                image.fill(QColor(colors[Path(path).name]))
+                return image
+
+            settings = AnalysisSettings(eps=0.001, min_samples=2)
+            with patch("PIL.Image.open", side_effect=AssertionError("original decoded")):
+                result = analyze_folder(directory, settings, None, Event(), AnalysisProgress(), thumbnail)
+                self.assertEqual([Path(result.paths[i]).name for i in result.order], ["a.mp4", "c.MKV", "b.png", "d.mov", "e.webp"])
+                self.assertEqual((result.clusters, result.noise), (2, 1))
+                self.assertEqual(calls, [(name, 128, 128) for name in colors])
+                nearest = analyze_folder(directory, settings, (root / "c.MKV").as_posix(), Event(), AnalysisProgress(), thumbnail)
+                self.assertEqual([Path(nearest.paths[i]).name for i in nearest.order[:2]], ["a.mp4", "c.MKV"])
+                self.assertEqual(nearest.distances[0], 0)
+                self.assertGreater(nearest.distances[1], 0)
+                geometry = analyze_folder(directory, AnalysisSettings(weights=(0, 0, 0, 0, 0, 1), eps=0.001),
+                                          None, Event(), AnalysisProgress(), thumbnail)
+                self.assertEqual((geometry.clusters, geometry.noise), (1, 0))
+            for name in colors:
+                (root / name).unlink()
+
+    def test_analysis_covers_every_grid_media_suffix(self):
         with tempfile.TemporaryDirectory() as directory:
-            (Path(directory) / "broken.png").write_bytes(b"not an image")
-            with self.assertRaises(UnidentifiedImageError):
-                analyze_folder(directory, AnalysisSettings(), None, Event(), AnalysisProgress())
+            for suffix in MEDIA_SUFFIXES:
+                (Path(directory) / ("media" + suffix.upper())).touch()
+            calls = []
+
+            def thumbnail(path, width, height):
+                calls.append(Path(path).suffix.lower())
+                image = QImage(20, 10, QImage.Format.Format_RGB32)
+                image.fill(QColor("red"))
+                return image
+
+            result = analyze_folder(directory, AnalysisSettings(), None, Event(), AnalysisProgress(), thumbnail)
+            self.assertEqual(set(calls), MEDIA_SUFFIXES)
+            self.assertEqual(len(result.paths), len(MEDIA_SUFFIXES))
+            self.assertEqual(result.clusters, 1)
+
+    def test_cache_miss_surfaces_without_original_decode_or_substitute(self):
+        failure = OSError("cached thumbnail unavailable")
+        with tempfile.TemporaryDirectory() as directory:
+            (Path(directory) / "video.mp4").touch()
+            with patch("PIL.Image.open", side_effect=AssertionError("original decoded")), patch(
+                    "filevoyager.shell_bridge.load_cached_thumbnail", side_effect=failure) as native:
+                from filevoyager.shell_bridge import load_thumbnail_image
+                with self.assertRaises(OSError) as raised:
+                    analyze_folder(directory, AnalysisSettings(), None, Event(), AnalysisProgress(), load_thumbnail_image)
+                self.assertIs(raised.exception, failure)
+                native.assert_called_once()

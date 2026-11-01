@@ -1,4 +1,5 @@
 from concurrent.futures import ThreadPoolExecutor
+import json
 import os
 from pathlib import Path
 
@@ -15,6 +16,7 @@ from filevoyager.preferences import FolderPreferences
 from filevoyager.directory_tree import DirectoryTreeModel
 from filevoyager.thumbnails import ThumbnailCache, ThumbnailController
 from filevoyager.similarity_dock import SimilarityDock
+from filevoyager.preview_dock import PreviewDock
 
 
 def resolve_directory(path):
@@ -109,8 +111,16 @@ class ExplorerWindow(QMainWindow):
         splitter.setCollapsible(1, False)
         self.setCentralWidget(splitter)
 
-        self.similarity_dock = SimilarityDock(self)
+        self.preview_dock = PreviewDock(load_image, self)
+        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.preview_dock)
+        self.selection.currentChanged.connect(self.update_preview_selection)
+        self.selection.selectionChanged.connect(self.update_preview_selection)
+        self.addAction(self.preview_dock.toggleViewAction())
+        self.preview_dock.toggleViewAction().setShortcut("Ctrl+Shift+P")
+        self.similarity_dock = SimilarityDock(load_image, self)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.similarity_dock)
+        self.splitDockWidget(self.preview_dock, self.similarity_dock, Qt.Orientation.Vertical)
+        self.resizeDocks([self.preview_dock, self.similarity_dock], [420, 300], Qt.Orientation.Vertical)
         self.similarity_dock.orderReady.connect(self.apply_image_order)
         self.similarity_dock.clearRequested.connect(self.clear_image_order)
         self.selection.selectionChanged.connect(self.update_similarity_selection)
@@ -132,7 +142,50 @@ class ExplorerWindow(QMainWindow):
         self.files.rowsInserted.connect(self.update_status)
         self.files.rowsRemoved.connect(self.update_status)
         self.files.directoryLoaded.connect(self.directory_loaded)
-        self.navigate(folder)
+        self.restore_app_state()
+        history_position = None
+        if folder is None:
+            folder = self.preferences.settings.value("last_folder", str(Path.home()), type=str)
+            if self.preferences.settings.contains("navigation/history"):
+                self.history = json.loads(self.preferences.settings.value("navigation/history", type=str))
+                self.history_position = self.preferences.settings.value("navigation/position", type=int)
+                history_position = self.history_position
+        self.navigate(folder, history_position)
+
+    def restore_app_state(self):
+        settings = self.preferences.settings
+        if settings.contains("window/geometry"):
+            self.restoreGeometry(settings.value("window/geometry"))
+        if settings.contains("window/state"):
+            self.restoreState(settings.value("window/state"))
+        if settings.contains("window/splitter"):
+            self.centralWidget().restoreState(settings.value("window/splitter"))
+        if settings.contains("details/header"):
+            header = self.details.header()
+            header.restoreState(settings.value("details/header"))
+            self.details.sortByColumn(header.sortIndicatorSection(), header.sortIndicatorOrder())
+        if settings.contains("similarity/eps"):
+            self.similarity_dock.eps.setValue(settings.value("similarity/eps", type=float))
+        if settings.contains("similarity/min_samples"):
+            self.similarity_dock.min_samples.setValue(settings.value("similarity/min_samples", type=int))
+        for index, spin in enumerate(self.similarity_dock.weights):
+            key = f"similarity/weights/{index}"
+            if settings.contains(key):
+                spin.setValue(settings.value(key, type=float))
+
+    def save_app_state(self):
+        settings = self.preferences.settings
+        settings.setValue("window/geometry", self.saveGeometry())
+        settings.setValue("window/state", self.saveState())
+        settings.setValue("window/splitter", self.centralWidget().saveState())
+        settings.setValue("details/header", self.details.header().saveState())
+        settings.setValue("similarity/eps", self.similarity_dock.eps.value())
+        settings.setValue("similarity/min_samples", self.similarity_dock.min_samples.value())
+        for index, spin in enumerate(self.similarity_dock.weights):
+            settings.setValue(f"similarity/weights/{index}", spin.value())
+        if self.current_path:
+            settings.setValue("navigation/history", json.dumps(self.history))
+            settings.setValue("navigation/position", self.history_position)
 
     def show_updates(self):
         from filevoyager.updates import UpdateDialog
@@ -144,6 +197,7 @@ class ExplorerWindow(QMainWindow):
 
     def build_toolbar(self):
         toolbar = QToolBar("Navigation")
+        toolbar.setObjectName("navigationToolbar")
         toolbar.setMovable(False)
         self.addToolBar(toolbar)
         self.back_action = QAction("Back", self)
@@ -191,6 +245,7 @@ class ExplorerWindow(QMainWindow):
         self.address.selectAll()
 
     def navigate(self, path, history_position=None):
+        self.preview_dock.set_item("")
         self.similarity_dock.set_folder("")
         self.navigation_serial += 1
         self.navigation_pending = (self.navigation_serial, path, history_position)
@@ -306,6 +361,7 @@ class ExplorerWindow(QMainWindow):
     def save_folder_state(self):
         if self.current_path:
             self.capture_scroll()
+            self.preferences.settings.setValue("last_folder", self.current_path)
             self.preferences.save(self.current_path, self.folder_state)
 
     def schedule_scroll_restore(self, *args):
@@ -339,6 +395,20 @@ class ExplorerWindow(QMainWindow):
         selected = len(self.selection.selectedRows(0))
         self.status.setText(f"{count:,} items   ·   {selected:,} selected")
 
+    def update_preview_selection(self, *args):
+        index = self.selection.currentIndex()
+        if not index.isValid() or not self.selection.isSelected(index):
+            selected = self.selection.selectedRows(0)
+            if not selected:
+                self.preview_dock.set_item("")
+                return
+            index = selected[0]
+        source = self.model.mapToSource(index.siblingAtColumn(0))
+        path = self.files.filePath(source)
+        media = (path.rpartition(".")[2].lower() in MEDIA_EXTENSIONS
+                 and not self.files.isDir(source))
+        self.preview_dock.set_item(path, media)
+
     def update_similarity_selection(self, *args):
         paths = tuple(self.files.filePath(self.model.mapToSource(index))
                       for index in self.selection.selectedRows(0)
@@ -361,7 +431,9 @@ class ExplorerWindow(QMainWindow):
             event.ignore()
             return
         self.save_folder_state()
+        self.preview_dock.shutdown()
         self.similarity_dock.shutdown()
+        self.save_app_state()
         self.preferences.settings.sync()
         if self.update_dialog is not None:
             self.update_dialog.close()
