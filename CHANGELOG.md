@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Prevented selection updates during file operations from reopening the video preview and locking the last selected item.
+- Waited for active preview reads before file operations without blocking the UI, and restored previews after folder refreshes when selected items remained.
+
 ## [0.4.0] - 2026-11-01
 
 ### Added

@@ -180,6 +180,94 @@ class ItemOperationTests(unittest.TestCase):
 
 
 class ItemActionUiTests(QtCase):
+    def test_pack_waits_for_inflight_preview_without_blocking_ui_and_restores_copy_preview(self):
+        folder = self.root / "pack-inflight-preview"
+        folder.mkdir()
+        source = folder / "file.txt"
+        source.write_text("contents")
+        window = ExplorerWindow(str(folder), image_result, preferences=FolderPreferences(
+            QSettings(str(self.root / "pack-inflight-preview.ini"), QSettings.Format.IniFormat)))
+        window.show()
+        self.addCleanup(window.close)
+        self.wait_for(lambda: window.current_path == str(folder) and not window.pending_restore)
+        self.wait_for(lambda: window.model.rowCount(window.details.rootIndex()) == 1)
+        started = threading.Event()
+        release = threading.Event()
+        self.addCleanup(release.set)
+        dock = window.preview_dock
+        load = dock.load
+
+        def delayed_load(request):
+            started.set()
+            release.wait(5)
+            return load(request)
+
+        with patch.object(dock, "load", side_effect=delayed_load):
+            index = window.model.mapFromSource(window.files.index(str(source)))
+            window.selection.setCurrentIndex(index, QItemSelectionModel.SelectionFlag.ClearAndSelect
+                                             | QItemSelectionModel.SelectionFlag.Rows)
+            self.wait_for(started.is_set)
+            window.show_pack_dialog()
+            window.pack_dialog.folder_name.setText("Copied")
+            window.pack_dialog.copy_mode.setChecked(True)
+            window.pack_dialog.accept()
+            QTest.qWait(120)
+            premature_copy = (folder / "Copied" / source.name).exists()
+            release.set()
+            self.wait_for(lambda: window.action_future is None)
+            self.wait_for(lambda: dock.path == str(source).replace("\\", "/")
+                          and dock.form.rowCount() > 0)
+        self.assertFalse(premature_copy)
+        self.assertEqual((folder / "Copied" / source.name).read_text(), "contents")
+
+    def test_pack_keeps_video_preview_released_during_selection_updates(self):
+        folder = self.root / "pack-video-selection"
+        folder.mkdir()
+        video = (Path(__file__).parent / "fixtures" / "preview-video.mp4").read_bytes()
+        paths = tuple(folder / f"{number}.mp4" for number in range(3))
+        for path in paths:
+            path.write_bytes(video)
+        window = ExplorerWindow(str(folder), image_result, preferences=FolderPreferences(
+            QSettings(str(self.root / "pack-video-selection.ini"), QSettings.Format.IniFormat)))
+        window.show()
+        self.addCleanup(window.close)
+        self.wait_for(lambda: window.current_path == str(folder) and not window.pending_restore)
+        self.wait_for(lambda: window.model.rowCount(window.details.rootIndex()) == 3)
+        for path in paths:
+            index = window.model.mapFromSource(window.files.index(str(path)))
+            window.selection.setCurrentIndex(index, QItemSelectionModel.SelectionFlag.Select
+                                             | QItemSelectionModel.SelectionFlag.Rows)
+        dock = window.preview_dock
+        self.wait_for(lambda: dock.play_button.isEnabled() and dock.future is None)
+        moved = threading.Event()
+        proceed = threading.Event()
+
+        def transfer(source, *args):
+            result = transfer_item(source, *args)
+            if source == paths[0]:
+                moved.set()
+                proceed.wait(5)
+            return result
+
+        with patch("filevoyager.item_actions.transfer_item", side_effect=transfer):
+            window.show_pack_dialog()
+            window.pack_dialog.folder_name.setText("Packed")
+            window.pack_dialog.accept()
+            self.wait_for(moved.is_set)
+            self.wait_for(lambda: len(window.selected_item_paths()) == 2)
+            QTest.qWait(120)
+            preview_path = dock.path
+            preview_pending = dock.pending
+            preview_source = dock.player.source()
+            proceed.set()
+            self.wait_for(lambda: window.action_future is None)
+        self.assertEqual(preview_path, "")
+        self.assertIsNone(preview_pending)
+        self.assertTrue(preview_source.isEmpty())
+        self.assertEqual({path.name for path in (folder / "Packed").iterdir()},
+                         {path.name for path in paths})
+        self.assertTrue(all(not path.exists() for path in paths))
+
     def test_pack_and_join_use_rename_dialogs_from_worker_in_move_and_copy_modes(self):
         for action in ("pack", "join"):
             for copy_mode in (False, True):

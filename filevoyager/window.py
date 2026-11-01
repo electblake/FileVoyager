@@ -36,7 +36,9 @@ def resolve_directory(path):
     return str(resolved), media
 
 
-def execute_item_action(operation, args, refresh_paths):
+def execute_item_action(operation, args, refresh_paths, preview_future):
+    if preview_future is not None:
+        preview_future.result()
     result = operation(*args)
     return result, {path for path in refresh_paths if Path(path).is_dir()}
 
@@ -482,7 +484,7 @@ class ExplorerWindow(QMainWindow):
         self.files.setReadOnly(True)
         self.preview_dock.set_item("")
         self.action_future = self.action_executor.submit(execute_item_action, operation, args,
-                                                         self.action_refresh_paths)
+                                                         self.action_refresh_paths, self.preview_dock.future)
         self.file_clipboard.update()
         self.action_status.setText(label)
         self.update_item_actions()
@@ -513,6 +515,8 @@ class ExplorerWindow(QMainWindow):
             for branch in self.folders.watched_nodes.get(key, ()):
                 if self.folders.nodes[branch].loaded:
                     self.folders.request_scan(self.folders.nodes[branch].path)
+        if path_key(self.current_path) not in self.action_refresh_paths:
+            self.update_preview_selection()
         self.action_refresh_paths.clear()
         self.action_status.setText("Action complete" if result is None else result)
 
@@ -622,6 +626,7 @@ class ExplorerWindow(QMainWindow):
     def directory_loaded(self, path):
         if QDir.cleanPath(path) == QDir.cleanPath(self.current_path):
             self.update_status()
+            self.update_preview_selection()
             self.thumbnails.schedule()
             self.schedule_scroll_restore()
 
@@ -670,6 +675,8 @@ class ExplorerWindow(QMainWindow):
         self.status.setText(f"{count:,} items   ·   {selected:,} selected")
 
     def update_preview_selection(self, *args):
+        if self.action_future is not None:
+            return
         index = self.selection.currentIndex()
         if not index.isValid() or not self.selection.isSelected(index):
             index = next(selected_rows(self.selection), None)
