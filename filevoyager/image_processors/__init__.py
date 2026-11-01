@@ -7,8 +7,19 @@ from .features.spatial_color import extract_spatial_color_features
 from .features.texture import extract_texture_features
 from .features_extraction import DEFAULT_FEATURE_WEIGHTS, extract_visual_features
 from .interface import ImageFeatureExtractor, SPECTRA_EXTRACTORS, SPECTRA_VISUAL_EXTRACTOR
+from .similarity import (
+    EUCLIDEAN_COMPARISON, SIMILARITY_COMPARISON, VectorClusterer, VectorComparison,
+    dbscan_labels, euclidean_distances, similarity_scores,
+)
 
 __all__ = [
+    "EUCLIDEAN_COMPARISON",
+    "SIMILARITY_COMPARISON",
+    "VectorClusterer",
+    "VectorComparison",
+    "dbscan_labels",
+    "euclidean_distances",
+    "similarity_scores",
     "DEFAULT_FEATURE_WEIGHTS",
     "ImageFeatureExtractor",
     "SPECTRA_EXTRACTORS",

@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added uniform vector comparison and DBSCAN clustering interfaces with one-neighborhood-at-a-time memory use.
+- Added a movable Image similarity dock on the right with DBSCAN distance/minimum-neighbor settings, six feature weights, background analysis, cancellation, and shared Grid/Details sorting.
+
+### Fixed
+
+- Waited for the grid scrollbar extent to finish its batched layout before restoring saved positions with the sorting proxy.
+
 ## [0.1.3] - 2026-10-31
 
 ### Added

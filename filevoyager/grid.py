@@ -75,9 +75,18 @@ class ThumbnailGrid(QListView):
         if self.layout_complete or self.model() is None:
             return
         count = self.model().rowCount(self.rootIndex())
-        if count and not self.visualRect(self.model().index(count - 1, 0, self.rootIndex())).isValid():
-            return
+        if count:
+            last = self.visualRect(self.model().index(count - 1, 0, self.rootIndex()))
+            if not last.isValid():
+                return
         self.updateGeometries()
+        # A reused proxy root can have valid item rectangles before the batched
+        # scrollbar extent catches up. Restore only after both describe the end.
+        if count:
+            last = self.visualRect(self.model().index(count - 1, 0, self.rootIndex()))
+            if (last.bottom() + 1 + self.verticalScrollBar().value()
+                    > self.verticalScrollBar().maximum() + self.viewport().height()):
+                return
         self.layout_complete = True
         self.layoutReady.emit()
 

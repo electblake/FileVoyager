@@ -14,6 +14,7 @@ from filevoyager.models import FileModel, MEDIA_EXTENSIONS, ThumbnailModel
 from filevoyager.preferences import FolderPreferences
 from filevoyager.directory_tree import DirectoryTreeModel
 from filevoyager.thumbnails import ThumbnailCache, ThumbnailController
+from filevoyager.similarity_dock import SimilarityDock
 
 
 def resolve_directory(path):
@@ -108,6 +109,14 @@ class ExplorerWindow(QMainWindow):
         splitter.setCollapsible(1, False)
         self.setCentralWidget(splitter)
 
+        self.similarity_dock = SimilarityDock(self)
+        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.similarity_dock)
+        self.similarity_dock.orderReady.connect(self.apply_image_order)
+        self.similarity_dock.clearRequested.connect(self.clear_image_order)
+        self.selection.selectionChanged.connect(self.update_similarity_selection)
+        self.addAction(self.similarity_dock.toggleViewAction())
+        self.similarity_dock.toggleViewAction().setShortcut("Ctrl+Shift+S")
+
         self.thumbnails = ThumbnailController(self.grid, self.model, load_image, self)
         self.update_dialog = None
         file_menu = self.menuBar().addMenu("&File")
@@ -182,6 +191,7 @@ class ExplorerWindow(QMainWindow):
         self.address.selectAll()
 
     def navigate(self, path, history_position=None):
+        self.similarity_dock.set_folder("")
         self.navigation_serial += 1
         self.navigation_pending = (self.navigation_serial, path, history_position)
         self.start_navigation()
@@ -218,6 +228,9 @@ class ExplorerWindow(QMainWindow):
             self.history.append(path)
             self.history_position = len(self.history) - 1
         self.current_path = path
+        if self.model.ranks is not None:
+            self.clear_image_order()
+        self.similarity_dock.set_folder(path)
         self.folder_state = self.preferences.load(path, media_folder)
         self.pending_restore = True
         with QSignalBlocker(self.icon_size):
@@ -326,11 +339,29 @@ class ExplorerWindow(QMainWindow):
         selected = len(self.selection.selectedRows(0))
         self.status.setText(f"{count:,} items   ·   {selected:,} selected")
 
+    def update_similarity_selection(self, *args):
+        paths = tuple(self.files.filePath(self.model.mapToSource(index))
+                      for index in self.selection.selectedRows(0)
+                      if not self.files.isDir(self.model.mapToSource(index)))
+        self.similarity_dock.set_selection(paths)
+
+    def apply_image_order(self, result):
+        self.thumbnails.set_enabled(False)
+        self.model.set_image_order(result.paths[index] for index in result.order)
+        self.thumbnails.set_enabled(self.views.currentWidget() is self.grid)
+        self.thumbnails.schedule()
+
+    def clear_image_order(self):
+        self.model.sort(0, Qt.SortOrder.AscendingOrder)
+        with QSignalBlocker(self.details.header()):
+            self.details.header().setSortIndicator(0, Qt.SortOrder.AscendingOrder)
+
     def closeEvent(self, event):
         if self.update_dialog is not None and self.update_dialog.future is not None:
             event.ignore()
             return
         self.save_folder_state()
+        self.similarity_dock.shutdown()
         self.preferences.settings.sync()
         if self.update_dialog is not None:
             self.update_dialog.close()

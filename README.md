@@ -45,7 +45,7 @@ The shared filesystem source sorts both content views. This version uses Qt's fi
 
 ## Standalone image processors
 
-[Image processors](filevoyager/image_processors/README.md) expose Spectra-derived image feature functions and a uniform callable interface for future extractors. They use NumPy and Pillow and are not connected to browsing, thumbnails, or sorting.
+[Image processors](filevoyager/image_processors/README.md) expose Spectra-derived image feature functions and a uniform callable interface for future extractors. They use NumPy and Pillow. The [Image similarity dock](docs/image-similarity.md) uses them for background comparison and DBSCAN sorting; thumbnail rendering continues to use the Windows Shell service.
 
 ## Verification
 
