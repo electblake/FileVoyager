@@ -15,3 +15,5 @@ FFmpeg 9.0.2 Windows x64 shared is downloaded directly from Gyan Doshi's GitHub 
 Dependency wheels are downloaded directly from PyPI at installation time, with their distribution metadata and notices intact. The bootstrap archive includes platformdirs and its MIT license. The FileVoyager wheel includes the Spectra-derived processors' LICENSE and README. No Qt binaries are embedded in the Setup executable.
 
 The application adds no restriction on replacing the dynamically loaded Qt libraries or reverse engineering for debugging modifications to those libraries. The virtual environment is located using platformdirs.user_data_path('FileVoyager', appauthor=False), under its venv subdirectory.
+
+qt-themes 0.4.1 supplies the application theme palettes under the MIT license. Its pinned PyPI wheel and license are installed into the application virtual environment. Package: https://pypi.org/project/qt-themes/0.4.1/.

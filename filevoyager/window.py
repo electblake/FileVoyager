@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 
 import qt_themes
-from PySide6.QtCore import QDir, QItemSelectionModel, QSignalBlocker, QTimer, Qt
+from PySide6.QtCore import QDir, QEvent, QItemSelectionModel, QSignalBlocker, QTimer, Qt
 from PySide6.QtGui import QAction, QActionGroup
 from PySide6.QtWidgets import (
     QAbstractItemView, QComboBox, QHeaderView, QInputDialog, QLabel, QLineEdit,
@@ -14,12 +14,12 @@ from PySide6.QtWidgets import (
 from filevoyager.grid import ThumbnailGrid
 from filevoyager.models import FileModel, MEDIA_EXTENSIONS, ThumbnailModel
 from filevoyager.preferences import FolderPreferences
-from filevoyager.directory_tree import DirectoryTreeModel
+from filevoyager.directory_tree import DirectoryTreeModel, path_key
 from filevoyager.thumbnails import ThumbnailCache, ThumbnailController
 from filevoyager.similarity_dock import SimilarityDock
 from filevoyager.preview_dock import PreviewDock
 from filevoyager.shortcuts import KeyboardShortcutsDialog, Shortcuts, install_item_shortcuts
-from filevoyager.item_actions import PackToFolderDialog, flatten_folders, pack_to_folder
+from filevoyager.item_actions import PackToFolderDialog, flatten_folders, join_to_folder, pack_to_folder
 from filevoyager.folder_merge import FolderMerge
 from filevoyager.link_drag import LinkDrag
 from filevoyager.selection import selected_row_count, selected_rows
@@ -68,6 +68,7 @@ class ExplorerWindow(QMainWindow):
         self.action_timer.setInterval(50)
         self.action_timer.timeout.connect(self.finish_item_action)
         self.pack_dialog = None
+        self.join_dialog = None
         self.folder_merge = FolderMerge(self)
 
         style = self.style()
@@ -170,14 +171,18 @@ class ExplorerWindow(QMainWindow):
         self.item_menus = {}
         for view in (self.details, self.grid):
             menu = QMenu(view)
-            menu.addActions([self.flatten_action, self.pack_action, self.rename_actions[view]])
+            menu.addActions([self.flatten_action, self.pack_action, self.join_action, self.rename_actions[view]])
             self.item_menus[view] = menu
             view.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+            view.viewport().installEventFilter(self)
             view.customContextMenuRequested.connect(lambda point, target=view: self.show_item_menu(target, point))
         self.tree_item_menu = QMenu(self.tree)
         self.tree_flatten_action = self.tree_item_menu.addAction("Flatten", lambda: self.start_item_action(
-            "Flattening selected folders…", flatten_folders, (self.tree_action_path,)))
+            "Flattening selected folders…", flatten_folders, (self.tree_action_path,),
+            refresh_paths=(self.tree_action_path,)))
         self.tree_pack_action = self.tree_item_menu.addAction("Pack to Folder…", lambda: self.show_pack_dialog(
+            paths=(self.tree_action_path,)))
+        self.tree_join_action = self.tree_item_menu.addAction("Join to Folder…", lambda: self.show_join_dialog(
             paths=(self.tree_action_path,)))
         self.tree_rename_action = self.tree_item_menu.addAction("Rename", self.rename_tree_item)
         self.tree.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
@@ -316,8 +321,11 @@ class ExplorerWindow(QMainWindow):
         self.addToolBar(toolbar)
         self.pack_action = toolbar.addAction("Pack to Folder…", self.show_pack_dialog)
         self.pack_action.setToolTip("Move or copy selected items into a new folder")
+        self.join_action = toolbar.addAction("Join to Folder…", self.show_join_dialog)
+        self.join_action.setToolTip("Move or copy the contents of selected folders into one new folder")
         self.flatten_action = toolbar.addAction("Flatten", self.flatten_selection)
         self.shortcuts.add("pack", "Pack to Folder", "", self.pack_action)
+        self.shortcuts.add("join", "Join to Folder", "", self.join_action)
         self.shortcuts.add("flatten", "Flatten", "", self.flatten_action)
         self.flatten_action.setToolTip(
             "Move nested files into each selected folder and remove its emptied subfolders")
@@ -331,16 +339,26 @@ class ExplorerWindow(QMainWindow):
         self.pack_action.setEnabled(available)
         self.flatten_action.setEnabled(available and all(
             self.files.isDir(self.model.mapToSource(index)) for index in selected_rows(self.selection)))
+        self.join_action.setEnabled(self.flatten_action.isEnabled())
 
     def selected_item_paths(self):
         return tuple(Path(self.files.filePath(self.model.mapToSource(index)))
                      for index in selected_rows(self.selection))
 
+    def eventFilter(self, watched, event):
+        if (event.type() in (QEvent.Type.MouseButtonPress, QEvent.Type.MouseButtonRelease)
+                and event.button() == Qt.MouseButton.RightButton
+                and watched in (self.details.viewport(), self.grid.viewport())
+                and selected_row_count(self.selection) > 1):
+            # Keep the selected batch before Qt's mouse handling can replace it.
+            return True
+        return super().eventFilter(watched, event)
+
     def show_item_menu(self, view, point):
         index = view.indexAt(point)
         if not index.isValid():
             return
-        if not self.selection.isSelected(index):
+        if selected_row_count(self.selection) <= 1 and not self.selection.isSelected(index):
             self.selection.setCurrentIndex(index, QItemSelectionModel.SelectionFlag.ClearAndSelect
                                            | QItemSelectionModel.SelectionFlag.Rows)
         view.setFocus()
@@ -355,6 +373,7 @@ class ExplorerWindow(QMainWindow):
         available = self.action_future is None
         self.tree_flatten_action.setEnabled(available)
         self.tree_pack_action.setEnabled(available and self.tree_action_path.parent != self.tree_action_path)
+        self.tree_join_action.setEnabled(self.tree_pack_action.isEnabled())
         self.tree_rename_action.setEnabled(available and self.tree_action_path.parent != self.tree_action_path)
         self.tree_item_menu.popup(self.tree.viewport().mapToGlobal(point))
 
@@ -378,17 +397,36 @@ class ExplorerWindow(QMainWindow):
         self.pack_dialog = dialog
         dialog.accepted.connect(lambda: self.start_item_action(
             "Packing selected items…", pack_to_folder, paths,
-            parent / dialog.folder_name.text(), dialog.copy_mode.isChecked()))
+            parent / dialog.folder_name.text(), dialog.copy_mode.isChecked(),
+            refresh_paths=(parent,)))
+        dialog.open()
+
+    def show_join_dialog(self, *, paths=None):
+        if paths is None:
+            paths = self.selected_item_paths()
+        parent = paths[0].parent
+        if self.join_dialog is not None:
+            self.join_dialog.deleteLater()
+        dialog = PackToFolderDialog(self)
+        dialog.setWindowTitle("Join to Folder")
+        self.join_dialog = dialog
+        dialog.accepted.connect(lambda: self.start_item_action(
+            "Joining selected folder contents…", join_to_folder, paths,
+            parent / dialog.folder_name.text(), dialog.copy_mode.isChecked(),
+            refresh_paths=(parent, *paths)))
         dialog.open()
 
     def flatten_selection(self):
+        paths = self.selected_item_paths()
         self.start_item_action("Flattening selected folders…", flatten_folders,
-                               self.selected_item_paths())
+                               paths, refresh_paths=paths)
 
     def merge_renamed_folder(self, source, destination):
-        self.start_item_action("Merging folders…", self.folder_merge.merge, source, destination)
+        self.start_item_action("Merging folders…", self.folder_merge.merge, source, destination,
+                               refresh_paths=(Path(source).parent, destination))
 
-    def start_item_action(self, label, operation, *args):
+    def start_item_action(self, label, operation, *args, refresh_paths):
+        self.action_refresh_paths = {path_key(path) for path in refresh_paths}
         self.files.setReadOnly(True)
         self.preview_dock.set_item("")
         self.action_future = self.action_executor.submit(operation, *args)
@@ -406,6 +444,12 @@ class ExplorerWindow(QMainWindow):
         self.files.setReadOnly(False)
         self.update_item_actions()
         result = future.result()
+        for key in self.action_refresh_paths:
+            if key in self.files.recent:
+                self.files.request(self.files.recent[key], True)
+            if key in self.folders.nodes and self.folders.nodes[key].loaded:
+                self.folders.request_scan(self.folders.nodes[key].path)
+        self.action_refresh_paths.clear()
         self.action_status.setText("Action complete" if result is None else result)
 
     def navigate(self, path, history_position=None):

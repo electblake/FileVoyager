@@ -100,7 +100,8 @@ class LinkDrag(QObject):
                 event.accept()
                 if kind == QEvent.Type.Drop:
                     self.window.start_item_action("Creating shortcuts…", create_shortcuts,
-                                                  self.drag_paths, Path(destination))
+                                                  self.drag_paths, Path(destination),
+                                                  refresh_paths=(destination,))
             else:
                 event.ignore()
             if kind == QEvent.Type.Drop:

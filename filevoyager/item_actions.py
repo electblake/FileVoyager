@@ -31,6 +31,19 @@ def pack_to_folder(paths, destination, copy_mode):
             source.rename(target)
 
 
+def join_to_folder(paths, destination, copy_mode):
+    destination.mkdir()
+    for folder in paths:
+        with os.scandir(folder) as entries:
+            for entry in entries:
+                source = Path(entry.path)
+                target = destination / entry.name
+                if copy_mode:
+                    copy_item(source, target)
+                else:
+                    source.rename(target)
+
+
 def flatten_contents(folder, destination):
     with os.scandir(folder) as entries:
         for entry in entries:

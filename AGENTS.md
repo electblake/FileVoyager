@@ -1,5 +1,19 @@
 # FileVoyager project instructions
 
+## Work autonomously; do not ask questions by default
+
+- Do not ask the user questions by default, including clarification, preference, confirmation, debugging, or verification questions.
+- Use available context and tools, investigate independently, make reasonable decisions within the requested scope, and carry the work through completion.
+- Do not interrupt work for optional choices or ask the user to repeat information already provided.
+- Ask only when a higher-priority instruction explicitly requires user input. Otherwise, report a concrete blocker when work truly cannot proceed; do not turn it into a diagnostic assignment for the user.
+
+## Own debugging and verification
+
+- Never ask the user to perform debugging work, run diagnostics, reproduce a bug, inspect logs, report UI state, or test a proposed fix.
+- Treat the user's bug report as sufficient instruction to investigate. Inspect the source, installed application, local state, and available tooling yourself; reproduce the issue and verify the fix with your own tests.
+- Do not dismiss a reported bug because existing tests pass. Expand the investigation and tests to cover the reported behavior.
+- If investigation is blocked, state the concrete blocker and the work already completed without assigning diagnostic tasks to the user.
+
 ## Performance is a primary requirement
 
 - Build a responsive file explorer. Familiar Windows File Explorer behavior is the baseline, but rendering performance takes priority over exact visual fidelity, decorative effects, animations, and expensive presentation details.

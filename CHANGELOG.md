@@ -7,10 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-01
+
 ### Added
 
 - Added a Refresh button and F5 shortcut to rescan the current folder asynchronously.
 - Added View → Theme with a qt-themes dropdown, an Apply button, and a saved application-wide theme selection.
+- Added Join to Folder to move or copy the contents of selected folders into one new folder from the toolbar and item context menus.
 
 ### Changed
 
@@ -18,7 +21,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Refreshed affected loaded folders after file actions using background incremental updates, including cached source folders after navigation.
 - Preserved the existing Qt Fusion style when applying themes to avoid restyling every widget; verified all 14 themes preserve browser selection, scrolling, and thumbnail generation.
+- Preserved multi-selection when opening item right-click menus so Pack to Folder and Flatten act on the selected batch instead of a single clicked item.
 
 ## [0.1.8] - 2026-11-01
 
