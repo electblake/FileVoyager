@@ -1,0 +1,312 @@
+{
+  "bundle": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\windows-ntfs-mft-usn\\2026-11-01",
+  "requested_urls": [
+    "https://learn.microsoft.com/en-us/windows/win32/fileio/master-file-table",
+    "https://learn.microsoft.com/en-us/windows/win32/devnotes/master-file-table",
+    "https://learn.microsoft.com/en-us/windows/win32/devnotes/file-record-segment-header",
+    "https://learn.microsoft.com/en-us/windows/win32/devnotes/attribute-record-header",
+    "https://learn.microsoft.com/en-us/windows/win32/devnotes/attribute-list-entry",
+    "https://learn.microsoft.com/en-us/windows/win32/devnotes/file-name",
+    "https://learn.microsoft.com/en-us/windows/win32/devnotes/mft-segment-reference",
+    "https://learn.microsoft.com/en-us/windows/win32/devnotes/multi-sector-header",
+    "https://learn.microsoft.com/en-us/windows/win32/devnotes/standard-information",
+    "https://learn.microsoft.com/en-us/windows/win32/fileio/file-streams",
+    "https://learn.microsoft.com/en-us/windows/win32/fileio/change-journals",
+    "https://learn.microsoft.com/en-us/windows/win32/fileio/change-journal-operations",
+    "https://learn.microsoft.com/en-us/windows/win32/fileio/using-the-change-journal-identifier",
+    "https://learn.microsoft.com/en-us/windows/win32/fileio/walking-a-buffer-of-change-journal-records",
+    "https://learn.microsoft.com/en-us/windows/win32/api/winioctl/ni-winioctl-fsctl_enum_usn_data",
+    "https://learn.microsoft.com/en-us/windows/win32/api/winioctl/ni-winioctl-fsctl_query_usn_journal",
+    "https://learn.microsoft.com/en-us/windows/win32/api/winioctl/ni-winioctl-fsctl_read_usn_journal",
+    "https://learn.microsoft.com/en-us/windows/win32/api/winioctl/ni-winioctl-fsctl_read_file_usn_data",
+    "https://learn.microsoft.com/en-us/windows/win32/api/winioctl/ni-winioctl-fsctl_get_ntfs_volume_data",
+    "https://learn.microsoft.com/en-us/windows/win32/api/winioctl/ni-winioctl-fsctl_get_ntfs_file_record",
+    "https://learn.microsoft.com/en-us/windows/win32/api/winioctl/ni-winioctl-fsctl_get_retrieval_pointers",
+    "https://learn.microsoft.com/en-us/windows/win32/api/winioctl/ns-winioctl-ntfs_volume_data_buffer",
+    "https://learn.microsoft.com/en-us/windows/win32/api/winioctl/ns-winioctl-mft_enum_data_v1",
+    "https://learn.microsoft.com/en-us/windows/win32/api/winioctl/ns-winioctl-read_usn_journal_data_v1",
+    "https://learn.microsoft.com/en-us/windows/win32/api/winioctl/ns-winioctl-usn_journal_data_v2",
+    "https://learn.microsoft.com/en-us/windows/win32/api/winioctl/ns-winioctl-usn_record_v2",
+    "https://learn.microsoft.com/en-us/windows/win32/api/winioctl/ns-winioctl-usn_record_v3",
+    "https://learn.microsoft.com/en-us/windows/win32/api/winioctl/ns-winioctl-usn_record_v4",
+    "https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilew",
+    "https://learn.microsoft.com/en-us/windows/win32/search/-search-indexing-process-overview",
+    "https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-fscc/a82e9105-2405-4e37-b2c3-28c773902d85",
+    "https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-fscc/d2a2b53e-bf78-4ef3-90c7-21b918fab304",
+    "https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/fsutil-usn"
+  ],
+  "requested_domains": [],
+  "llms": [],
+  "mirrors": [
+    {
+      "url": "https://learn.microsoft.com/en-us/windows/win32/fileio/master-file-table",
+      "final_url": "https://learn.microsoft.com/en-us/windows/win32/fileio/master-file-table",
+      "content_type": "text/markdown",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\windows-ntfs-mft-usn\\2026-11-01\\learn.microsoft.com\\en-us\\windows\\win32\\fileio\\master-file-table.md",
+      "status": "written"
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/windows/win32/devnotes/master-file-table",
+      "final_url": "https://learn.microsoft.com/en-us/windows/win32/devnotes/master-file-table",
+      "content_type": "text/markdown",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\windows-ntfs-mft-usn\\2026-11-01\\learn.microsoft.com\\en-us\\windows\\win32\\devnotes\\master-file-table.md",
+      "status": "written"
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/windows/win32/devnotes/file-record-segment-header",
+      "final_url": "https://learn.microsoft.com/en-us/windows/win32/devnotes/file-record-segment-header",
+      "content_type": "text/markdown",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\windows-ntfs-mft-usn\\2026-11-01\\learn.microsoft.com\\en-us\\windows\\win32\\devnotes\\file-record-segment-header.md",
+      "status": "written"
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/windows/win32/devnotes/attribute-record-header",
+      "final_url": "https://learn.microsoft.com/en-us/windows/win32/devnotes/attribute-record-header",
+      "content_type": "text/markdown",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\windows-ntfs-mft-usn\\2026-11-01\\learn.microsoft.com\\en-us\\windows\\win32\\devnotes\\attribute-record-header.md",
+      "status": "written"
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/windows/win32/devnotes/attribute-list-entry",
+      "final_url": "https://learn.microsoft.com/en-us/windows/win32/devnotes/attribute-list-entry",
+      "content_type": "text/markdown",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\windows-ntfs-mft-usn\\2026-11-01\\learn.microsoft.com\\en-us\\windows\\win32\\devnotes\\attribute-list-entry.md",
+      "status": "written"
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/windows/win32/devnotes/file-name",
+      "final_url": "https://learn.microsoft.com/en-us/windows/win32/devnotes/file-name",
+      "content_type": "text/markdown",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\windows-ntfs-mft-usn\\2026-11-01\\learn.microsoft.com\\en-us\\windows\\win32\\devnotes\\file-name.md",
+      "status": "written"
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/windows/win32/devnotes/mft-segment-reference",
+      "final_url": "https://learn.microsoft.com/en-us/windows/win32/devnotes/mft-segment-reference",
+      "content_type": "text/markdown",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\windows-ntfs-mft-usn\\2026-11-01\\learn.microsoft.com\\en-us\\windows\\win32\\devnotes\\mft-segment-reference.md",
+      "status": "written"
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/windows/win32/devnotes/multi-sector-header",
+      "final_url": "https://learn.microsoft.com/en-us/windows/win32/devnotes/multi-sector-header",
+      "content_type": "text/markdown",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\windows-ntfs-mft-usn\\2026-11-01\\learn.microsoft.com\\en-us\\windows\\win32\\devnotes\\multi-sector-header.md",
+      "status": "written"
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/windows/win32/devnotes/standard-information",
+      "final_url": "https://learn.microsoft.com/en-us/windows/win32/devnotes/standard-information",
+      "content_type": "text/markdown",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\windows-ntfs-mft-usn\\2026-11-01\\learn.microsoft.com\\en-us\\windows\\win32\\devnotes\\standard-information.md",
+      "status": "written"
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/windows/win32/fileio/file-streams",
+      "final_url": "https://learn.microsoft.com/en-us/windows/win32/fileio/file-streams",
+      "content_type": "text/markdown",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\windows-ntfs-mft-usn\\2026-11-01\\learn.microsoft.com\\en-us\\windows\\win32\\fileio\\file-streams.md",
+      "status": "written"
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/windows/win32/fileio/change-journals",
+      "final_url": "https://learn.microsoft.com/en-us/windows/win32/fileio/change-journals",
+      "content_type": "text/markdown",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\windows-ntfs-mft-usn\\2026-11-01\\learn.microsoft.com\\en-us\\windows\\win32\\fileio\\change-journals.md",
+      "status": "written"
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/windows/win32/fileio/change-journal-operations",
+      "final_url": "https://learn.microsoft.com/en-us/windows/win32/fileio/change-journal-operations",
+      "content_type": "text/markdown",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\windows-ntfs-mft-usn\\2026-11-01\\learn.microsoft.com\\en-us\\windows\\win32\\fileio\\change-journal-operations.md",
+      "status": "written"
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/windows/win32/fileio/using-the-change-journal-identifier",
+      "final_url": "https://learn.microsoft.com/en-us/windows/win32/fileio/using-the-change-journal-identifier",
+      "content_type": "text/markdown",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\windows-ntfs-mft-usn\\2026-11-01\\learn.microsoft.com\\en-us\\windows\\win32\\fileio\\using-the-change-journal-identifier.md",
+      "status": "written"
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/windows/win32/fileio/walking-a-buffer-of-change-journal-records",
+      "final_url": "https://learn.microsoft.com/en-us/windows/win32/fileio/walking-a-buffer-of-change-journal-records",
+      "content_type": "text/markdown",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\windows-ntfs-mft-usn\\2026-11-01\\learn.microsoft.com\\en-us\\windows\\win32\\fileio\\walking-a-buffer-of-change-journal-records.md",
+      "status": "written"
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/winioctl/ni-winioctl-fsctl_enum_usn_data",
+      "final_url": "https://learn.microsoft.com/en-us/windows/win32/api/winioctl/ni-winioctl-fsctl_enum_usn_data",
+      "content_type": "text/markdown",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\windows-ntfs-mft-usn\\2026-11-01\\learn.microsoft.com\\en-us\\windows\\win32\\api\\winioctl\\ni-winioctl-fsctl_enum_usn_data.md",
+      "status": "written"
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/winioctl/ni-winioctl-fsctl_query_usn_journal",
+      "final_url": "https://learn.microsoft.com/en-us/windows/win32/api/winioctl/ni-winioctl-fsctl_query_usn_journal",
+      "content_type": "text/markdown",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\windows-ntfs-mft-usn\\2026-11-01\\learn.microsoft.com\\en-us\\windows\\win32\\api\\winioctl\\ni-winioctl-fsctl_query_usn_journal.md",
+      "status": "written"
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/winioctl/ni-winioctl-fsctl_read_usn_journal",
+      "final_url": "https://learn.microsoft.com/en-us/windows/win32/api/winioctl/ni-winioctl-fsctl_read_usn_journal",
+      "content_type": "text/markdown",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\windows-ntfs-mft-usn\\2026-11-01\\learn.microsoft.com\\en-us\\windows\\win32\\api\\winioctl\\ni-winioctl-fsctl_read_usn_journal.md",
+      "status": "written"
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/winioctl/ni-winioctl-fsctl_read_file_usn_data",
+      "final_url": "https://learn.microsoft.com/en-us/windows/win32/api/winioctl/ni-winioctl-fsctl_read_file_usn_data",
+      "content_type": "text/markdown",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\windows-ntfs-mft-usn\\2026-11-01\\learn.microsoft.com\\en-us\\windows\\win32\\api\\winioctl\\ni-winioctl-fsctl_read_file_usn_data.md",
+      "status": "written"
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/winioctl/ni-winioctl-fsctl_get_ntfs_volume_data",
+      "final_url": "https://learn.microsoft.com/en-us/windows/win32/api/winioctl/ni-winioctl-fsctl_get_ntfs_volume_data",
+      "content_type": "text/markdown",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\windows-ntfs-mft-usn\\2026-11-01\\learn.microsoft.com\\en-us\\windows\\win32\\api\\winioctl\\ni-winioctl-fsctl_get_ntfs_volume_data.md",
+      "status": "written"
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/winioctl/ni-winioctl-fsctl_get_ntfs_file_record",
+      "final_url": "https://learn.microsoft.com/en-us/windows/win32/api/winioctl/ni-winioctl-fsctl_get_ntfs_file_record",
+      "content_type": "text/markdown",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\windows-ntfs-mft-usn\\2026-11-01\\learn.microsoft.com\\en-us\\windows\\win32\\api\\winioctl\\ni-winioctl-fsctl_get_ntfs_file_record.md",
+      "status": "written"
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/winioctl/ni-winioctl-fsctl_get_retrieval_pointers",
+      "final_url": "https://learn.microsoft.com/en-us/windows/win32/api/winioctl/ni-winioctl-fsctl_get_retrieval_pointers",
+      "content_type": "text/markdown",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\windows-ntfs-mft-usn\\2026-11-01\\learn.microsoft.com\\en-us\\windows\\win32\\api\\winioctl\\ni-winioctl-fsctl_get_retrieval_pointers.md",
+      "status": "written"
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/winioctl/ns-winioctl-ntfs_volume_data_buffer",
+      "final_url": "https://learn.microsoft.com/en-us/windows/win32/api/winioctl/ns-winioctl-ntfs_volume_data_buffer",
+      "content_type": "text/markdown",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\windows-ntfs-mft-usn\\2026-11-01\\learn.microsoft.com\\en-us\\windows\\win32\\api\\winioctl\\ns-winioctl-ntfs_volume_data_buffer.md",
+      "status": "written"
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/winioctl/ns-winioctl-mft_enum_data_v1",
+      "final_url": "https://learn.microsoft.com/en-us/windows/win32/api/winioctl/ns-winioctl-mft_enum_data_v1",
+      "content_type": "text/markdown",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\windows-ntfs-mft-usn\\2026-11-01\\learn.microsoft.com\\en-us\\windows\\win32\\api\\winioctl\\ns-winioctl-mft_enum_data_v1.md",
+      "status": "written"
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/winioctl/ns-winioctl-read_usn_journal_data_v1",
+      "final_url": "https://learn.microsoft.com/en-us/windows/win32/api/winioctl/ns-winioctl-read_usn_journal_data_v1",
+      "content_type": "text/markdown",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\windows-ntfs-mft-usn\\2026-11-01\\learn.microsoft.com\\en-us\\windows\\win32\\api\\winioctl\\ns-winioctl-read_usn_journal_data_v1.md",
+      "status": "written"
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/winioctl/ns-winioctl-usn_journal_data_v2",
+      "final_url": "https://learn.microsoft.com/en-us/windows/win32/api/winioctl/ns-winioctl-usn_journal_data_v2",
+      "content_type": "text/markdown",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\windows-ntfs-mft-usn\\2026-11-01\\learn.microsoft.com\\en-us\\windows\\win32\\api\\winioctl\\ns-winioctl-usn_journal_data_v2.md",
+      "status": "written"
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/winioctl/ns-winioctl-usn_record_v2",
+      "final_url": "https://learn.microsoft.com/en-us/windows/win32/api/winioctl/ns-winioctl-usn_record_v2",
+      "content_type": "text/markdown",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\windows-ntfs-mft-usn\\2026-11-01\\learn.microsoft.com\\en-us\\windows\\win32\\api\\winioctl\\ns-winioctl-usn_record_v2.md",
+      "status": "written"
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/winioctl/ns-winioctl-usn_record_v3",
+      "final_url": "https://learn.microsoft.com/en-us/windows/win32/api/winioctl/ns-winioctl-usn_record_v3",
+      "content_type": "text/markdown",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\windows-ntfs-mft-usn\\2026-11-01\\learn.microsoft.com\\en-us\\windows\\win32\\api\\winioctl\\ns-winioctl-usn_record_v3.md",
+      "status": "written"
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/winioctl/ns-winioctl-usn_record_v4",
+      "final_url": "https://learn.microsoft.com/en-us/windows/win32/api/winioctl/ns-winioctl-usn_record_v4",
+      "content_type": "text/markdown",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\windows-ntfs-mft-usn\\2026-11-01\\learn.microsoft.com\\en-us\\windows\\win32\\api\\winioctl\\ns-winioctl-usn_record_v4.md",
+      "status": "written"
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilew",
+      "final_url": "https://learn.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilew",
+      "content_type": "text/markdown",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\windows-ntfs-mft-usn\\2026-11-01\\learn.microsoft.com\\en-us\\windows\\win32\\api\\fileapi\\nf-fileapi-createfilew.md",
+      "status": "written"
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/windows/win32/search/-search-indexing-process-overview",
+      "final_url": "https://learn.microsoft.com/en-us/windows/win32/search/-search-indexing-process-overview",
+      "content_type": "text/markdown",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\windows-ntfs-mft-usn\\2026-11-01\\learn.microsoft.com\\en-us\\windows\\win32\\search\\search-indexing-process-overview.md",
+      "status": "written"
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-fscc/a82e9105-2405-4e37-b2c3-28c773902d85",
+      "final_url": "https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-fscc/a82e9105-2405-4e37-b2c3-28c773902d85",
+      "content_type": "text/markdown",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\windows-ntfs-mft-usn\\2026-11-01\\learn.microsoft.com\\en-us\\openspecs\\windows_protocols\\ms-fscc\\a82e9105-2405-4e37-b2c3-28c773902d85.md",
+      "status": "written"
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-fscc/d2a2b53e-bf78-4ef3-90c7-21b918fab304",
+      "final_url": "https://learn.microsoft.com/en-us/openspecs/windows_protocols/ms-fscc/d2a2b53e-bf78-4ef3-90c7-21b918fab304",
+      "content_type": "text/markdown",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\windows-ntfs-mft-usn\\2026-11-01\\learn.microsoft.com\\en-us\\openspecs\\windows_protocols\\ms-fscc\\d2a2b53e-bf78-4ef3-90c7-21b918fab304.md",
+      "status": "written"
+    },
+    {
+      "url": "https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/fsutil-usn",
+      "final_url": "https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/fsutil-usn",
+      "content_type": "text/markdown",
+      "origin": "requested-url",
+      "saved_to": "S:\\Spaces\\File-Organization\\FileVoyager\\.agents\\references\\windows-ntfs-mft-usn\\2026-11-01\\learn.microsoft.com\\en-us\\windows-server\\administration\\windows-commands\\fsutil-usn.md",
+      "status": "written"
+    }
+  ],
+  "errors": [
+    {
+      "url": "https://learn.microsoft.com/llms.txt",
+      "error": "HTTP 404: Not Found"
+    }
+  ]
+}
