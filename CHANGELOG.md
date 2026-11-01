@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added a Refresh button and F5 shortcut to rescan the current folder asynchronously.
+
+### Changed
+
+- Replaced Back, Forward, and Up navigation labels with Qt's built-in icons.
+
 ## [0.1.8] - 2026-11-01
 
 ### Added
