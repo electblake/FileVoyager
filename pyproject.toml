@@ -27,4 +27,5 @@ include = ["filevoyager*"]
 url = "https://pypi.org/simple"
 
 [tool.setuptools.package-data]
+"filevoyager" = ["FileVoyager.ico"]
 "filevoyager.image_processors" = ["LICENSE", "README.md"]

@@ -23,6 +23,8 @@ Choose **View → Theme…**, select a theme from the dropdown, and click **Appl
 
 Window position, size, maximized state, dock/toolbar layout and visibility, pane sizes, details columns and sort order, similarity controls, and Back/Forward history are saved on close and restored on launch through QSettings. Explicit launch paths start a new navigation history. Active analysis and video playback remain session-only.
 
+Choose **Help → Install in File Explorer**, then click **Install in File Explorer** to add **Open in FileVoyager** for folders, folder backgrounds, and drives. Installation runs in the background and writes only to `HKEY_CURRENT_USER\Software\Classes`, without administrator elevation. Reinstalling replaces the same entries. Explorer opens the selected folder without starting file operations or similarity analysis. Both the Inno Setup private environment and installed-source environment use their absolute Python executable with `-I -m filevoyager`; keep that environment installed. The package includes the context-menu icon.
+
 The [Preview Detail dock](docs/preview-detail.md) shows a thumbnail and Windows file/media properties for the selected item. Video previews include Play/Pause and a seek slider. Ctrl+Shift+P toggles the dock.
 
 `platformdirs` supplies the user configuration location, which is registered as QSettings' user-scope INI default. On Windows the settings file is `%LOCALAPPDATA%\FileVoyager\FileVoyager.ini`. Folder paths are normalized and hashed as keys. Tests and benchmarks use isolated INI files rather than modifying these preferences.

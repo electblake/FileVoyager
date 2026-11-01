@@ -155,6 +155,7 @@ class ExplorerWindow(QMainWindow):
 
         self.thumbnails = ThumbnailController(self.grid, self.model, load_image, self)
         self.update_dialog = None
+        self.explorer_install_dialog = None
         file_menu = self.menuBar().addMenu("&File")
         quit_action = file_menu.addAction("&Quit")
         self.shortcuts.add("quit", "Quit", "Ctrl+Q", quit_action)
@@ -166,6 +167,7 @@ class ExplorerWindow(QMainWindow):
         self.shortcuts.add("updates", "Check for updates", "", updates_action)
         shortcuts_action = help_menu.addAction("Keyboard Shortcuts…", self.show_shortcuts)
         self.shortcuts.add("keyboard_shortcuts", "Keyboard Shortcuts", "", shortcuts_action)
+        help_menu.addAction("Install in File Explorer", self.show_explorer_install)
         self.build_toolbar()
         self.build_actions_toolbar()
         self.item_menus = {}
@@ -252,6 +254,14 @@ class ExplorerWindow(QMainWindow):
             self.update_dialog.deleteLater()
         self.update_dialog = UpdateDialog(self)
         self.update_dialog.open()
+
+    def show_explorer_install(self):
+        from filevoyager.explorer_install import ExplorerInstallDialog
+
+        if self.explorer_install_dialog is not None:
+            self.explorer_install_dialog.deleteLater()
+        self.explorer_install_dialog = ExplorerInstallDialog(self)
+        self.explorer_install_dialog.open()
 
     def show_shortcuts(self):
         if self.shortcuts_dialog is not None:
@@ -645,6 +655,9 @@ class ExplorerWindow(QMainWindow):
         if self.update_dialog is not None and self.update_dialog.future is not None:
             event.ignore()
             return
+        if self.explorer_install_dialog is not None and self.explorer_install_dialog.future is not None:
+            event.ignore()
+            return
         self.save_folder_state()
         self.preview_dock.shutdown()
         self.similarity_dock.shutdown()
@@ -652,6 +665,8 @@ class ExplorerWindow(QMainWindow):
         self.preferences.settings.sync()
         if self.update_dialog is not None:
             self.update_dialog.close()
+        if self.explorer_install_dialog is not None:
+            self.explorer_install_dialog.close()
         self.restore_timer.stop()
         self.navigation_timer.stop()
         self.navigation_executor.shutdown(wait=True, cancel_futures=True)

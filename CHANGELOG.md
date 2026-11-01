@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added Help > Install in File Explorer with per-user folder, folder-background, and drive context menus, background installation, and a bundled icon.
+
+### Fixed
+
+- Corrected the corrupted menu arrow in the File Explorer installation instructions.
+
 ## [0.2.0] - 2026-11-01
 
 ### Added
