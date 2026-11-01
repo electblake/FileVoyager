@@ -26,6 +26,7 @@ ArchiveExtraction=full
 [Files]
 Source: "https://api.nuget.org/v3-flatcontainer/python/3.12.10/python.3.12.10.nupkg"; DestDir: "{app}\runtime"; DestName: "python.zip"; ExternalSize: 39200793; Hash: "0eb85c2dfccccf1b17352de4c397f69194035b7d37149eacc16f1147d93de3b8"; Flags: external download extractarchive ignoreversion recursesubdirs createallsubdirs
 Source: "{#MyStageDir}\bootstrap.pyz"; DestDir: "{app}"; Flags: ignoreversion
+Source: "https://github.com/GyanD/codexffmpeg/releases/download/9.0.2/ffmpeg-9.0.2-full_build-shared.zip"; DestDir: "{app}"; DestName: "ffmpeg.zip"; ExternalSize: 99899672; Hash: "8d31e162f1616e37aab3fa2db991b97e1b8dbeb1c8465fd81a81be16ff91b328"; Flags: external download ignoreversion deleteafterinstall
 Source: "{#MyStageDir}\requirements.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#MyStageDir}\app-wheel.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#MyStageDir}\filevoyager-{#MyAppVersion}-py3-none-any.whl"; DestDir: "{app}"; Flags: ignoreversion

@@ -29,7 +29,10 @@ thumbnail and metadata failures propagate unchanged.
 
 One Qt QMediaPlayer and QVideoWidget handle video decoding and rendering without
 Python per-frame image copies. Source loading uses the same 60 ms selection
-debounce and never autoplays. Video decoding uses Qt's multimedia backend and
+debounce and never autoplays. Video decoding uses Qt's FFmpeg backend, with the installer's shared libraries
+loaded from `platformdirs.user_data_path('FileVoyager', appauthor=False)` under
+`tools/ffmpeg/ffmpeg-9.0.2-full_build-shared/bin`. It never searches PATH for an
+FFmpeg executable. The shared-library ABI matches Qt 6.12. Decoding
 can consume source-resolution frame buffers; the 192-pixel bound applies to
 poster thumbnails, not the backend's video buffers.
 
@@ -49,7 +52,7 @@ An absent optional property is omitted from the form.
   seeking, play/pause, slider synchronization, drag-release seeking, pausing on
   hide, debounced video selection, and source release on selection/shutdown.
   The fixture was generated with FFmpeg's `testsrc2=size=96x64:rate=10`,
-  `-t 3 -c:v mpeg4 -q:v 5`; running the tests does not require FFmpeg.
+  `-t 3 -c:v mpeg4 -q:v 5`; the tests require the same installed FFmpeg libraries as the app.
 - The existing 10,000-item synthetic UI benchmark with the new dock measured
   1,680.51 ms first navigation, 44.94 ms warm navigation, 28.17 ms p95 event-loop
   gap, 51.79 ms maximum scrolling event-loop gap, and 186.23 MiB peak working set.

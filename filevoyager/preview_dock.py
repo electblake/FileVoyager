@@ -4,6 +4,8 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from pathlib import Path
 
+from filevoyager import media_runtime
+
 from comtypes import CoInitializeEx, CoUninitialize, COINIT_MULTITHREADED
 from comtypes.client import CreateObject
 from PySide6.QtCore import QSignalBlocker, QTimer, Qt, QUrl

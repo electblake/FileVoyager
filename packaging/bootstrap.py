@@ -3,6 +3,7 @@ import shutil
 import subprocess
 import sys
 import venv
+import zipfile
 from pathlib import Path
 
 from platformdirs import user_data_path
@@ -10,10 +11,13 @@ from platformdirs import user_data_path
 
 install_dir = Path(sys.argv[0]).resolve().parent
 environment = user_data_path("FileVoyager", appauthor=False) / "venv"
+ffmpeg = user_data_path("FileVoyager", appauthor=False) / "tools/ffmpeg"
 python = environment / "Scripts/python.exe"
 
 
 def install():
+    with zipfile.ZipFile(install_dir / "ffmpeg.zip") as archive:
+        archive.extractall(ffmpeg)
     venv.EnvBuilder(with_pip=True).create(environment)
     subprocess.run(
         [str(python), "-I", "-m", "pip", "--isolated", "--disable-pip-version-check",
@@ -38,6 +42,7 @@ def run():
 
 def uninstall():
     shutil.rmtree(environment)
+    shutil.rmtree(ffmpeg)
 
 
 if __name__ == "__main__":

@@ -1,35 +1,30 @@
 from pathlib import Path
 from concurrent.futures import Future
 from threading import Event, get_ident
-import tempfile
-import unittest
+import shutil
 from unittest.mock import patch
 
 from PySide6.QtGui import QColor, QImage
 from PySide6.QtCore import QItemSelectionModel, QSettings, Qt
-from PySide6.QtTest import QTest
-from PySide6.QtWidgets import QApplication
+from support import QtCase
 
 from filevoyager.preferences import FolderPreferences
 from filevoyager.window import ExplorerWindow
 
 
-class SimilarityDockTests(unittest.TestCase):
+class SimilarityDockTests(QtCase):
     @classmethod
     def setUpClass(cls):
-        cls.app = QApplication.instance() or QApplication([])
+        super().setUpClass()
+        cls.images = cls.root / "images"
+        cls.images.mkdir()
+        for name in ("a.mp4", "b.mkv", "c.MOV", "d.webm", "e.avi"):
+            shutil.copyfile(Path(__file__).parent / "fixtures/preview-video.mp4", cls.images / name)
+        (cls.images / "folder").mkdir()
+        (cls.images / "text.txt").touch()
 
     def setUp(self):
-        self.temp = tempfile.TemporaryDirectory()
-        self.addCleanup(self.temp.cleanup)
-        self.root = Path(self.temp.name)
-        self.images = self.root / "images"
-        self.images.mkdir()
-        for name, color in [("a.mp4", "red"), ("b.mkv", "blue"), ("c.MOV", "red"), ("d.webm", "blue"), ("e.avi", "green")]:
-            (self.images / name).write_bytes(b"media original must not be read")
-        (self.images / "folder").mkdir()
-        (self.images / "text.txt").touch()
-        preferences = FolderPreferences(QSettings(str(self.root / "settings.ini"), QSettings.Format.IniFormat))
+        preferences = FolderPreferences(QSettings(str(self.root / (self.id() + ".ini")), QSettings.Format.IniFormat))
         self.thumbnail_threads = []
         colors = {"a.mp4": "red", "b.mkv": "blue", "c.MOV": "red", "d.webm": "blue", "e.avi": "green"}
 
@@ -44,13 +39,6 @@ class SimilarityDockTests(unittest.TestCase):
         self.addCleanup(self.window.close)
         self.wait_for(lambda: self.window.model.rowCount(self.window.details.rootIndex()) == 7)
         self.wait_for(lambda: not self.window.pending_restore)
-
-    def wait_for(self, condition):
-        for _ in range(1000):
-            if condition():
-                return
-            QTest.qWait(10)
-        self.assertTrue(condition())
 
     def names(self):
         window = self.window

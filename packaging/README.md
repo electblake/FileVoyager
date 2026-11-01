@@ -1,6 +1,6 @@
 # Windows installer
 
-Setup installs a private Python 3.12.10 runtime, creates a virtual environment using platformdirs, and installs FileVoyager's wheel and locked dependencies. It does not freeze the application or include the project directory. An internet connection to NuGet and PyPI is required during installation.
+Setup installs a private Python 3.12.10 runtime, creates a virtual environment using platformdirs, and installs FileVoyager's wheel, locked dependencies, and FFmpeg. It does not freeze the application or include the project directory. An internet connection to NuGet, PyPI, and GitHub is required during installation.
 
 ## Build
 
@@ -22,11 +22,13 @@ Supply the actual installed compiler path. `pyproject.toml` supplies the wheel a
 3. Python's `venv` module creates the environment with pip. Pip installs wheel-only dependencies directly from `https://pypi.org/simple`, with exact versions and required hashes. Pip configuration is isolated and retries are disabled. The local FileVoyager wheel is installed with dependency resolution disabled because dependencies were already installed from the lock.
 4. Start menu and optional desktop shortcuts invoke the bootstrap launcher, which executes the venv's Python with `-I -m filevoyager`. The console preserves native exception output.
 
+Inno Setup also downloads the pinned Gyan FFmpeg 9.0.2 Windows x64 shared ZIP and verifies its SHA-256. Before creating the venv, the bootstrap extracts the complete archive, including its license and documentation, into `platformdirs.user_data_path('FileVoyager', appauthor=False) / 'tools/ffmpeg'`. The executable is `%LOCALAPPDATA%\FileVoyager\tools\ffmpeg\ffmpeg-9.0.2-full_build-shared\bin\ffmpeg.exe`; ffprobe and ffplay are in the same directory. This shares the venv's application-data root. Setup deletes the temporary ZIP when installation finishes. System PATH is unchanged. Before creating a media player, the app loads the FFmpeg DLLs by absolute path from this directory and selects Qt's FFmpeg backend. This also applies to source launches; missing native dependencies fail at the DLL load. Qt 6.12 and this FFmpeg build use the same library ABI majors (avcodec/avformat 63, avutil 61, swresample 7, swscale 10).
+
 Installation is per-user without elevation, defaults to `%LOCALAPPDATA%\Programs\FileVoyager`, and keeps the stable `FileVoyager.Desktop` AppId. Reinstalling updates the same environment from the supplied requirements and wheel. Do not move the installed private Python directory: the venv refers to it.
 
 The approved Inno exit-code check reports failure when environment creation or pip installation fails, returns a nonzero Setup exit code, disables post-install launch, and retains original command output in the setup log. The wizard displays installation failure; the uninstaller can remove the incomplete installation. There are no retries, alternate indexes, fallback interpreters, or custom recovery. On 2026-10-31 the user explicitly authorized this exit-code check as an exception to the project's custom-error-path restriction and requested venv installation in place of the Inno skill's default frozen-bundle workflow.
 
-Close FileVoyager before reinstalling or uninstalling. Uninstall removes the venv and the private interpreter. Folder preferences at `%LOCALAPPDATA%\FileVoyager\FileVoyager.ini` remain. The venv is application-owned; manually installed packages inside it are also removed. No system Python installation is modified.
+Close FileVoyager before reinstalling or uninstalling. Uninstall removes the venv, the owned `tools/ffmpeg` directory, and the private interpreter. Folder preferences at `%LOCALAPPDATA%\FileVoyager\FileVoyager.ini` remain. The venv is application-owned; manually installed packages inside it are also removed. No system Python installation is modified.
 
 Silent installation: `/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /LOG="install.log"`. Post-install launch is skipped in silent mode. Setup logging is enabled automatically; provide `/LOG` to choose a known path.
 
@@ -35,6 +37,7 @@ Silent installation: `/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /LOG="install.log
 | Component | Source and ownership |
 | --- | --- |
 | Python 3.12.10 x64 | PSF NuGet `python` package, downloaded by Inno into the private application directory |
+| FFmpeg 9.0.2 x64 shared | Gyan's GPLv3 shared build, downloaded from its GitHub release into the platformdirs-managed `tools/ffmpeg` directory |
 | platformdirs 4.14.2 | MIT-licensed bootstrap module; also installed in the venv from PyPI |
 | Qt for Python Community 6.12.0 | Public PyPI PySide6, Essentials, Addons and shiboken6; metadata declares LGPL/GPL licensing |
 | Qt PDF / WebEngine 6.12.0.140 | Transitive public PyPI dependencies installed with PySide6 |
@@ -46,6 +49,10 @@ Silent installation: `/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /LOG="install.log
 Python URL: `https://api.nuget.org/v3-flatcontainer/python/3.12.10/python.3.12.10.nupkg`.
 SHA-256: `0eb85c2dfccccf1b17352de4c397f69194035b7d37149eacc16f1147d93de3b8`.
 Extracted size: 39,200,793 bytes. The archive includes Python, pip, venv and license files under `tools`.
+
+FFmpeg URL: `https://github.com/GyanD/codexffmpeg/releases/download/9.0.2/ffmpeg-9.0.2-full_build-shared.zip`.
+SHA-256: `8d31e162f1616e37aab3fa2db991b97e1b8dbeb1c8465fd81a81be16ff91b328`.
+Download size: 99,899,672 bytes. Distributor: https://www.gyan.dev/ffmpeg/builds/.
 
 See [open-source notices](OPEN-SOURCE-NOTICES.md). The prior commercial-only interpretation based on `LicenseRef-Qt-Commercial.txt` was incorrect: the public PyPI packages explicitly declare the open-source licensing alternatives. The installer is unsigned.
 

@@ -44,16 +44,17 @@ def bitmap():
 
 
 class ShellThumbnailTests(unittest.TestCase):
-    def setUp(self):
-        self.temp = tempfile.TemporaryDirectory(prefix="filevoyager-native-")
-        self.addCleanup(self.temp.cleanup)
-        self.path = Path(self.temp.name) / "uncached.bmp"
+    @classmethod
+    def setUpClass(cls):
+        cls.temp = tempfile.TemporaryDirectory(prefix="filevoyager-native-")
+        cls.addClassCleanup(cls.temp.cleanup)
+        cls.path = Path(cls.temp.name) / "uncached.bmp"
         # Valid, unique source file used only as a Shell item. Never request extraction.
         header = struct.pack("<2sIHHI", b"BM", 54 + len(_PIXELS), 0, 0, 54)
         dib = struct.pack("<IiiHHIIiiII", 40, 2, -2, 1, 24, 0, len(_PIXELS), 0, 0, 0, 0)
-        self.path.write_bytes(header + dib + _PIXELS)
-        self.executor = ThreadPoolExecutor(max_workers=1)
-        self.addCleanup(self.executor.shutdown)
+        cls.path.write_bytes(header + dib + _PIXELS)
+        cls.executor = ThreadPoolExecutor(max_workers=1)
+        cls.addClassCleanup(cls.executor.shutdown)
 
     def load(self):
         return self.executor.submit(shell.load_cached_thumbnail, str(self.path), 96, 64).result()
@@ -78,9 +79,8 @@ class ShellThumbnailTests(unittest.TestCase):
         self.assertEqual(self.path.read_bytes(), before)
 
     def test_missing_path_propagates_native_failure(self):
-        self.path.unlink()
         with self.assertRaises(OSError):
-            self.load()
+            self.executor.submit(shell.load_cached_thumbnail, str(self.path.with_name("missing.bmp")), 96, 64).result()
 
     def test_exact_cache_flags_and_bitmap_cleanup(self):
         handles = []

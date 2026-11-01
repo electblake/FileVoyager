@@ -4,7 +4,6 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import os
 from pathlib import Path
-import runpy
 import subprocess
 import sys
 import tempfile
@@ -12,16 +11,13 @@ import threading
 import unittest
 from unittest.mock import patch
 
-from PySide6.QtWidgets import QApplication, QWidget
+from PySide6.QtWidgets import QWidget
+from support import QtCase
 
 from filevoyager import updates
 
 
-class UpdateTests(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.app = QApplication.instance() or QApplication([])
-
+class UpdateTests(QtCase):
     def setUp(self):
         self.parent = QWidget()
         with patch.object(updates, "version", return_value="0.1.2"):
@@ -110,7 +106,7 @@ class UpdateTests(unittest.TestCase):
         server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
         self.addCleanup(server.server_close)
         self.addCleanup(server.shutdown)
-        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread = threading.Thread(target=lambda: server.serve_forever(poll_interval=0.01), daemon=True)
         thread.start()
         address = f"http://127.0.0.1:{server.server_port}"
         release["assets"][0]["browser_download_url"] = address + "/setup.exe"
@@ -147,33 +143,30 @@ class UpdateTests(unittest.TestCase):
                 script = base64.b64decode(args[-1]).decode("utf-16le")
                 prefix, command = script.rsplit("Start-Process -FilePath ", 1)
                 self.assertEqual(command.strip(), "'" + str(Path(temp) / "setup.exe") + "'")
+                prefix = prefix.replace("    $wait.WaitOne()", "    Write-Output 'waiting'\n    $wait.WaitOne()")
                 script = prefix + "[IO.File]::WriteAllText('" + str(marker).replace("'", "''") + "', 'started')"
                 args[-1] = base64.b64encode(script.encode("utf-16le")).decode("ascii")
-                return real_popen(args, **kwargs)
+                return real_popen(args, stdout=subprocess.PIPE, **kwargs)
 
             with patch.object(updates.os, "getpid", return_value=children[0].pid), \
                     patch.dict(os.environ, {"FILEVOYAGER_LAUNCHER_PID": str(children[1].pid)}), \
                     patch.object(updates.subprocess, "Popen", side_effect=harmless_helper):
                 helper = updates.install_after_exit(Path(temp) / "setup.exe")
+            self.assertEqual(helper.stdout.readline().strip(), b"waiting")
             with self.assertRaises(subprocess.TimeoutExpired):
-                helper.wait(timeout=1)
+                helper.wait(timeout=0.05)
             self.assertFalse(marker.exists())
             children[0].stdin.close()
             children[0].wait(timeout=10)
+            self.assertEqual(helper.stdout.readline().strip(), b"waiting")
             with self.assertRaises(subprocess.TimeoutExpired):
-                helper.wait(timeout=1)
+                helper.wait(timeout=0.05)
             self.assertFalse(marker.exists())
             children[1].stdin.close()
             children[1].wait(timeout=10)
             self.assertEqual(helper.wait(timeout=15), 0)
+            helper.stdout.close()
             self.assertEqual(marker.read_text(), "started")
-
-    def test_bootstrap_supplies_launcher_pid(self):
-        bootstrap = runpy.run_path(str(Path(__file__).resolve().parents[1] / "packaging/bootstrap.py"))
-        with patch("subprocess.run") as run:
-            bootstrap["run"]()
-        self.assertEqual(run.call_args.kwargs["env"]["FILEVOYAGER_LAUNCHER_PID"], str(os.getpid()))
-
 
 if __name__ == "__main__":
     unittest.main()

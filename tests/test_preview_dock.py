@@ -1,8 +1,9 @@
 from concurrent.futures import Future
+from ctypes import WinDLL, create_unicode_buffer
+from ctypes.wintypes import HMODULE, DWORD, LPWSTR
 from pathlib import Path
 from threading import Event, get_ident
 import tempfile
-import unittest
 from unittest.mock import patch
 
 from PIL import Image
@@ -10,25 +11,15 @@ from PySide6.QtCore import QItemSelectionModel, QSettings, Qt
 from PySide6.QtGui import QImage
 from PySide6.QtMultimedia import QMediaPlayer
 from PySide6.QtTest import QTest
-from PySide6.QtWidgets import QApplication
+from support import QtCase
 
+from filevoyager.media_runtime import FFMPEG_BIN, FFMPEG_LIBRARIES
 from filevoyager.preferences import FolderPreferences
 from filevoyager.preview_dock import PreviewDock
 from filevoyager.window import ExplorerWindow
 
 
-class PreviewDockTests(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        cls.app = QApplication.instance() or QApplication([])
-
-    def wait_for(self, condition):
-        for _ in range(1000):
-            if condition():
-                return
-            QTest.qWait(10)
-        self.assertTrue(condition())
-
+class PreviewDockTests(QtCase):
     def thumbnail(self, path, width, height):
         image = QImage(width, height // 2, QImage.Format.Format_RGB32)
         image.fill(Qt.GlobalColor.red)
@@ -91,8 +82,9 @@ class PreviewDockTests(unittest.TestCase):
             self.assertEqual(calls, ["first.png"])
             self.assertEqual(dock.pending[1], "999.png")
             dock.debounce.stop()
+            dock.timer.stop()
             release.set()
-            self.wait_for(dock.future.done)
+            dock.future.result(timeout=5)
             dock.poll()
             self.assertEqual(dock.form.rowCount(), 0)
             self.wait_for(lambda: dock.future is None)
@@ -141,6 +133,14 @@ class PreviewDockTests(unittest.TestCase):
             # A keyboard seek from the poster must decode a frame without playing.
             QTest.keyClick(dock.seek_slider, Qt.Key.Key_Right)
             self.wait_for(lambda: frame_times and 900_000 <= frame_times[-1] <= 1_100_000)
+            # Verify the actual loaded modules after Qt has decoded a frame.
+            module_path = WinDLL("kernel32").GetModuleFileNameW
+            module_path.argtypes = [HMODULE, LPWSTR, DWORD]
+            module_path.restype = DWORD
+            for library in FFMPEG_LIBRARIES:
+                buffer = create_unicode_buffer(32768)
+                self.assertGreater(module_path(library._handle, buffer, len(buffer)), 0)
+                self.assertEqual(Path(buffer.value).parent, FFMPEG_BIN)
             self.assertEqual(dock.player.position(), 1000)
             self.assertIs(dock.display.currentWidget(), dock.video)
             self.assertEqual(dock.player.playbackState(), QMediaPlayer.PlaybackState.PausedState)

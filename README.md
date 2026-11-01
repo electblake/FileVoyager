@@ -10,6 +10,7 @@ From this project directory, with Python 3.12 and uv:
 
 ```powershell
 uv sync --locked
+# Install the shared FFmpeg dependency using the Windows Setup first (see packaging/README.md).
 uv run filevoyager
 uv run filevoyager 'C:\Users\shoji\Pictures\Screenshots'
 ```
@@ -54,11 +55,13 @@ The shared filesystem source sorts both content views. This version uses Qt's fi
 ## Verification
 
 ```powershell
-uv run python -m unittest discover -s tests -v
+uv run python -m unittest discover -s tests --durations 10
 uv run python tools/benchmark_ui.py --items 10000
 uv run python tools/benchmark_ui.py --items 10000 --prefix my-profile --profile-callbacks
 uv run python tools/benchmark_native_ui.py 'C:\Users\shoji\Pictures\Screenshots'
 ```
+
+Tests use one offscreen QApplication, class-scoped filesystem fixtures and a shared Qt event-loop wait. They exercise the installed platformdirs FFmpeg libraries and real video seeking, Shell/GDI calls, folder watchers, and installer handoff. Settings and destructive lifecycle checks stay inside temporary directories; the suite does not modify your preferences or uninstall your dependencies. See [test coverage and timing](tests/README.md).
 
 The first benchmark uses synthetic images solely to isolate the Qt pipeline. The native benchmark uses the production service and records real failures; it exits nonzero when any completed request failed. Both save measurements under ignored `.benchmarks/`. The native screenshot may contain personal content and is kept local.
 

@@ -1,19 +1,17 @@
 """Qt integration tests use synthetic image results, never a production fallback."""
 
 from pathlib import Path
-import tempfile
 import threading
 import time
 import unittest
 import json
-import subprocess
-import sys
+import configparser
 from unittest.mock import patch
 
-from PySide6.QtCore import QEventLoop, QItemSelectionModel, QSettings, QTimer, Qt
+from PySide6.QtCore import QItemSelectionModel, QSettings, Qt
 from PySide6.QtGui import QImage
 from PySide6.QtTest import QTest
-from PySide6.QtWidgets import QApplication
+from support import QtCase
 
 from filevoyager.thumbnails import ThumbnailCache, ThumbnailKey
 from filevoyager.window import ExplorerWindow
@@ -27,12 +25,10 @@ def image_result(path, width, height):
     return image
 
 
-class BrowserTests(unittest.TestCase):
+class BrowserTests(QtCase):
     @classmethod
     def setUpClass(cls):
-        cls.app = QApplication.instance() or QApplication([])
-        cls.temp = tempfile.TemporaryDirectory(prefix="filevoyager-test-")
-        cls.root = Path(cls.temp.name)
+        super().setUpClass()
         cls.first = cls.root / "first"
         cls.second = cls.root / "second"
         cls.first.mkdir()
@@ -47,27 +43,6 @@ class BrowserTests(unittest.TestCase):
         for number in range(20):
             (cls.second / f"image-{number:04}.png").touch()
 
-    @classmethod
-    def tearDownClass(cls):
-        cls.temp.cleanup()
-
-    def wait_for(self, condition, seconds=10):
-        if condition():
-            return
-        loop = QEventLoop()
-        poll = QTimer()
-        poll.setInterval(10)
-        poll.timeout.connect(lambda: loop.quit() if condition() else None)
-        timeout = QTimer()
-        timeout.setSingleShot(True)
-        timeout.timeout.connect(loop.quit)
-        poll.start()
-        timeout.start(round(seconds * 1000))
-        loop.exec()
-        poll.stop()
-        timeout.stop()
-        self.assertTrue(condition(), "Qt condition did not become true")
-
     def open_window(self, loader=image_result):
         preferences = FolderPreferences(QSettings(str(self.root / (self.id() + ".ini")), QSettings.Format.IniFormat))
         preferences.save(str(self.first), preferences.load(str(self.first), False))
@@ -78,19 +53,7 @@ class BrowserTests(unittest.TestCase):
         self.wait_for(lambda: window.model.rowCount(window.details.rootIndex()) == 601)
         return window
 
-    def test_file_quit_saves_settings_before_closing(self):
-        window = self.open_window()
-        menus = window.menuBar().actions()
-        self.assertEqual([action.text() for action in menus], ["&File", "&Help"])
-        settings = window.preferences.settings
-        settings.setValue("quit-test", "saved")
-        with patch.object(settings, "sync", wraps=settings.sync) as sync:
-            menus[0].menu().actions()[0].trigger()
-            self.assertGreaterEqual(sync.call_count, 1)
-        self.assertFalse(window.isVisible())
-        self.assertIn("quit-test=saved", Path(settings.fileName()).read_text())
-
-    def test_help_opens_update_dialog_without_starting_network_request(self):
+    def test_help_and_quit_menu_lifecycle(self):
         window = self.open_window()
         window.menuBar().actions()[1].menu().actions()[0].trigger()
         dialog = window.update_dialog
@@ -102,6 +65,15 @@ class BrowserTests(unittest.TestCase):
         self.assertIsNot(window.update_dialog, dialog)
         self.assertTrue(window.update_dialog.isVisible())
         window.update_dialog.reject()
+        menus = window.menuBar().actions()
+        self.assertEqual([action.text() for action in menus], ["&File", "&Help"])
+        settings = window.preferences.settings
+        settings.setValue("quit-test", "saved")
+        with patch.object(settings, "sync", wraps=settings.sync) as sync:
+            menus[0].menu().actions()[0].trigger()
+            self.assertGreaterEqual(sync.call_count, 1)
+        self.assertFalse(window.isVisible())
+        self.assertIn("quit-test=saved", Path(settings.fileName()).read_text())
 
     def test_app_state_restores_after_reopening(self):
         window = self.open_window()
@@ -394,14 +366,13 @@ class BrowserTests(unittest.TestCase):
         self.assertEqual(window.grid.verticalScrollBar().value(), 20000)
         window.close()
 
-        # A separate interpreter proves that state reached disk, not only Qt's cache.
-        command = ("import json,sys; from PySide6.QtCore import QSettings; "
-                   "from filevoyager.preferences import FolderPreferences; "
-                   "p=FolderPreferences(QSettings(sys.argv[1],QSettings.Format.IniFormat)); "
-                   "print(json.dumps(p.load(sys.argv[2],True)))")
-        saved = json.loads(subprocess.check_output([sys.executable, "-c", command, filename, str(self.first)], text=True))
-        self.assertEqual(saved["grid"][0], 20000)
-        self.assertEqual(saved["details"][0], 120)
+        # Read the persisted INI directly rather than starting another Python/Qt.
+        saved = configparser.ConfigParser()
+        saved.read(filename, encoding="utf-8")
+        key = window.preferences.key(str(self.first)).split("/", 1)[1]
+        state = json.loads(json.loads(saved["folders"][key]))
+        self.assertEqual(state["grid"][0], 20000)
+        self.assertEqual(state["details"][0], 120)
 
         reopened = ExplorerWindow(str(self.first), image_result, preferences=preferences())
         reopened.show()
