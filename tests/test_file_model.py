@@ -125,7 +125,7 @@ class FileModelTests(QtCase):
 
     def test_revealing_drive_during_scan_does_not_duplicate_it(self):
         drive = self.folder.anchor
-        with patch('filevoyager.directory_tree.scan_directories', return_value=[(drive, drive)]):
+        with patch('filevoyager.directory_tree.scan_directories', return_value=[(drive, drive, "")]):
             tree = DirectoryTreeModel(QIcon())
             self.addCleanup(tree.close)
             tree.reveal_path(drive)

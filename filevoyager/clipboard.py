@@ -53,7 +53,7 @@ class FileClipboard(QObject):
 
     def destination(self, view):
         if view is self.window.tree:
-            return Path(self.window.folders.file_path(view.currentIndex()))
+            return Path(self.window.folders.navigation_path(view.currentIndex()))
         return Path(self.window.current_path)
 
     def put(self, paths, cut):

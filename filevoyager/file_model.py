@@ -10,6 +10,7 @@ from pathlib import Path
 from PySide6.QtCore import (
     QAbstractItemModel, QCollator, QDateTime, QFileSystemWatcher, QModelIndex, QTimer, Qt, Signal,
 )
+from filevoyager.windows_shortcuts import folder_shortcut_targets
 
 
 def path_key(path):
@@ -25,11 +26,13 @@ class FileRecord:
     modified: int
     kind: str
     modified_text: str
+    folder_target: str = ""
 
 
 def directory_snapshot(path, previous, column, descending, scan):
     records = []
     if scan:
+        shortcuts = []
         with os.scandir(path) as entries:
             for entry in entries:
                 metadata = entry.stat()
@@ -37,11 +40,19 @@ def directory_snapshot(path, previous, column, descending, scan):
                     continue
                 directory = entry.is_dir()
                 suffix = os.path.splitext(entry.name)[1][1:].upper()
+                if not directory and suffix == "LNK":
+                    shortcuts.append(len(records))
                 modified = metadata.st_mtime_ns // 1_000_000
                 records.append(FileRecord(entry.path, entry.name, directory, metadata.st_size,
                                           modified,
                                           "Folder" if directory else f"{suffix} file" if suffix else "File",
                                           QDateTime.fromMSecsSinceEpoch(modified).toString("yyyy-MM-dd HH:mm")))
+        targets = folder_shortcut_targets(records[row].path for row in shortcuts)
+        for row in shortcuts:
+            record = records[row]
+            target = targets[record.path]
+            records[row] = replace(record, folder_target=target,
+                                   kind="Folder shortcut" if target else "Shortcut")
     else:
         records = list(previous)
     collator = QCollator()
@@ -51,9 +62,9 @@ def directory_snapshot(path, previous, column, descending, scan):
     def key(record):
         name = collator.sortKey(record.name)
         if column == 0:
-            return (not record.directory, name)
+            return (not (record.directory or record.folder_target), name)
         if column == 1:
-            return (not record.directory, record.size, name)
+            return (not (record.directory or record.folder_target), record.size, name)
         if column == 2:
             return (collator.sortKey(record.kind), name)
         return (record.modified, name)
@@ -162,7 +173,9 @@ class FileModel(QAbstractItemModel):
                 return record.kind
             return record.modified_text
         if role == Qt.ItemDataRole.DecorationRole and index.column() == 0:
-            return self.folder_icon if self.isDir(index) else self.file_icon
+            return self.folder_icon if self.isDir(index) or record.folder_target else self.file_icon
+        if role == Qt.ItemDataRole.ToolTipRole and record is not None and record.folder_target:
+            return record.folder_target
 
     def headerData(self, section, orientation, role=Qt.ItemDataRole.DisplayRole):
         if orientation == Qt.Orientation.Horizontal and role == Qt.ItemDataRole.DisplayRole:
@@ -181,6 +194,12 @@ class FileModel(QAbstractItemModel):
     def isDir(self, index):
         node = index.internalPointer()
         return node.record is None or node.record.directory
+
+    def navigation_path(self, index):
+        record = index.internalPointer().record
+        if self.isDir(index):
+            return self.filePath(index)
+        return record.folder_target
 
     def file_metadata(self, index):
         record = index.internalPointer().record

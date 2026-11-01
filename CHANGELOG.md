@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-01
+
+### Added
+
+- Added Windows folder-shortcut navigation in Details, Grid, and the folder tree, with folder icons, target tooltips, and expandable shortcut branches.
+- Added lazy nested-shortcut browsing and independent branches for multiple shortcuts to the same folder.
+
+### Fixed
+
+- Kept tree selection inside shortcut branches when opening subfolders from the content view or navigating Up and Back.
+- Refreshed retargeted shortcut branches and shared target watches without retaining stale children or dropping other branches' updates.
+- Routed paste and move/link drops on folder shortcuts to their targets while keeping rename, cut, copy, and pack operations on shortcut files.
+- Disabled folder-only Flatten and Join actions on shortcut files and kept folder shortcuts with folders in similarity ordering.
+- Avoided repeated Windows shortcut loading with a bounded, metadata-invalidated target cache; kept resolution and filesystem checks on scan workers.
+
 ## [0.3.0] - 2026-11-01
 
 ### Added

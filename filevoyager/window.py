@@ -93,7 +93,9 @@ class ExplorerWindow(QMainWindow):
         self.tree.setAnimated(False)
         self.tree.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
         self.tree.clicked.connect(lambda index: self.navigate(
-            self.folders.file_path(index)))
+            self.folders.navigation_path(index)))
+        self.tree.doubleClicked.connect(lambda index: self.navigate(
+            self.folders.navigation_path(index)))
         self.tree.expanded.connect(self.folders.expanded)
         self.folders.pathReady.connect(self.select_tree_index)
 
@@ -183,7 +185,7 @@ class ExplorerWindow(QMainWindow):
             menu = QMenu(view)
             menu.addActions(self.file_clipboard.actions[view][:2])
             menu.addAction("&Paste", lambda: self.file_clipboard.paste(
-                Path(self.files.filePath(self.model.mapToSource(next(selected_rows(self.selection)))))))
+                Path(self.files.navigation_path(self.model.mapToSource(next(selected_rows(self.selection)))))))
             menu.addAction(self.rename_actions[view])
             menu.addSeparator()
             menu.addActions([self.flatten_action, self.pack_action, self.join_action])
@@ -305,6 +307,7 @@ class ExplorerWindow(QMainWindow):
         self.refresh_action = QAction(style.standardIcon(QStyle.StandardPixmap.SP_BrowserReload), "Refresh", self)
         self.shortcuts.add("refresh", "Refresh", "F5", self.refresh_action)
         self.refresh_action.triggered.connect(lambda: self.files.request(self.files.current, True))
+        self.refresh_action.triggered.connect(lambda: self.folders.directory_changed(self.current_path))
         toolbar.addActions([self.back_action, self.forward_action, self.up_action, self.refresh_action])
         self.address = QLineEdit()
         self.address.setPlaceholderText("Folder path")
@@ -402,10 +405,10 @@ class ExplorerWindow(QMainWindow):
                                            | QItemSelectionModel.SelectionFlag.Rows)
         view.setFocus()
         paste = self.item_menus[view].actions()[2]
-        folder = selected_row_count(self.selection) == 1 and self.files.isDir(
-            self.model.mapToSource(next(selected_rows(self.selection))))
-        paste.setVisible(folder)
-        paste.setEnabled(folder and self.file_clipboard.can_paste(self.selected_item_paths()[0]))
+        destination = (self.files.navigation_path(self.model.mapToSource(next(selected_rows(self.selection))))
+                       if selected_row_count(self.selection) == 1 else "")
+        paste.setVisible(bool(destination))
+        paste.setEnabled(bool(destination) and self.file_clipboard.can_paste(Path(destination)))
         self.item_menus[view].popup(view.viewport().mapToGlobal(point))
 
     def show_tree_item_menu(self, point):
@@ -417,9 +420,10 @@ class ExplorerWindow(QMainWindow):
         self.tree.setFocus()
         self.file_clipboard.update()
         available = self.action_future is None
-        self.tree_flatten_action.setEnabled(available)
+        shortcut = bool(index.data(Qt.ItemDataRole.UserRole + 1))
+        self.tree_flatten_action.setEnabled(available and not shortcut)
         self.tree_pack_action.setEnabled(available and self.tree_action_path.parent != self.tree_action_path)
-        self.tree_join_action.setEnabled(self.tree_pack_action.isEnabled())
+        self.tree_join_action.setEnabled(self.tree_pack_action.isEnabled() and not shortcut)
         self.tree_rename_action.setEnabled(available and self.tree_action_path.parent != self.tree_action_path)
         self.tree_item_menu.popup(self.tree.viewport().mapToGlobal(point))
 
@@ -506,8 +510,9 @@ class ExplorerWindow(QMainWindow):
         for key in refresh_paths:
             if key in self.files.recent:
                 self.files.request(self.files.recent[key], True)
-            if key in self.folders.nodes and self.folders.nodes[key].loaded:
-                self.folders.request_scan(self.folders.nodes[key].path)
+            for branch in self.folders.watched_nodes.get(key, ()):
+                if self.folders.nodes[branch].loaded:
+                    self.folders.request_scan(self.folders.nodes[branch].path)
         self.action_refresh_paths.clear()
         self.action_status.setText("Action complete" if result is None else result)
 
@@ -581,7 +586,7 @@ class ExplorerWindow(QMainWindow):
 
     def sync_tree(self, *args):
         if self.current_path:
-            self.folders.reveal_path(self.current_path)
+            self.folders.reveal_path(self.current_path, self.tree.currentIndex())
 
     def select_tree_index(self, index):
         self.tree.setCurrentIndex(index)
@@ -595,8 +600,9 @@ class ExplorerWindow(QMainWindow):
 
     def activate(self, index):
         source_index = self.model.mapToSource(index)
-        if self.files.isDir(source_index):
-            self.navigate(self.files.filePath(source_index))
+        path = self.files.navigation_path(source_index)
+        if path:
+            self.navigate(path)
 
     def switch_view(self, view):
         self.capture_scroll()

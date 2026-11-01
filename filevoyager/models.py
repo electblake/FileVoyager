@@ -51,7 +51,7 @@ class ThumbnailModel(QSortFilterProxyModel):
         if identity not in self.order_keys:
             source = self.sourceModel()
             path = source.filePath(index)
-            if source.isDir(index):
+            if source.navigation_path(index):
                 key = (0, 0, path.casefold(), path)
             elif path in self.ranks:
                 key = (1, self.ranks[path], "", "")

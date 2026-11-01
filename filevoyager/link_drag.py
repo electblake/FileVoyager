@@ -55,11 +55,11 @@ class LinkDrag(QObject):
     def destination(self, view, point):
         index = view.indexAt(point)
         if view is self.window.tree:
-            return self.item_path(view, index) if index.isValid() else ""
+            return self.window.folders.navigation_path(index) if index.isValid() else ""
         if not index.isValid():
             return self.window.current_path
         source = self.window.model.mapToSource(index)
-        return self.window.files.filePath(source) if self.window.files.isDir(source) else ""
+        return self.window.files.navigation_path(source)
 
     def eventFilter(self, viewport, event):
         kind = event.type()
