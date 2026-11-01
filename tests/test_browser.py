@@ -78,6 +78,31 @@ class BrowserTests(unittest.TestCase):
         self.wait_for(lambda: window.model.rowCount(window.details.rootIndex()) == 601)
         return window
 
+    def test_file_quit_saves_settings_before_closing(self):
+        window = self.open_window()
+        menus = window.menuBar().actions()
+        self.assertEqual([action.text() for action in menus], ["&File", "&Help"])
+        settings = window.preferences.settings
+        settings.setValue("quit-test", "saved")
+        with patch.object(settings, "sync", wraps=settings.sync) as sync:
+            menus[0].menu().actions()[0].trigger()
+            self.assertGreaterEqual(sync.call_count, 1)
+        self.assertFalse(window.isVisible())
+        self.assertIn("quit-test=saved", Path(settings.fileName()).read_text())
+
+    def test_help_opens_update_dialog_without_starting_network_request(self):
+        window = self.open_window()
+        window.menuBar().actions()[1].menu().actions()[0].trigger()
+        dialog = window.update_dialog
+        self.assertTrue(dialog.isVisible())
+        self.assertIsNone(dialog.future)
+        self.assertTrue(dialog.check_button.isEnabled())
+        dialog.reject()
+        window.menuBar().actions()[1].menu().actions()[0].trigger()
+        self.assertIsNot(window.update_dialog, dialog)
+        self.assertTrue(window.update_dialog.isVisible())
+        window.update_dialog.reject()
+
     def test_shared_selection_sort_and_history(self):
         window = self.open_window()
         index = window.model.index(5, 0, window.details.rootIndex())

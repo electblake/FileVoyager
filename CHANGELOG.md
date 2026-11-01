@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-10-31
+
+### Added
+
+- Added File → Quit, saving QSettings before shutdown, and Help → Check for updates with GitHub release checks, download progress, and staged update buttons.
+- Added an installer handoff that waits for both FileVoyager and its installed launcher to exit before starting Setup.
+
 ## [0.1.2] - 2026-10-31
 
 ### Changed

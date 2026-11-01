@@ -1,3 +1,4 @@
+import os
 import shutil
 import subprocess
 import sys
@@ -29,7 +30,10 @@ def install():
 
 
 def run():
-    subprocess.run([str(python), "-I", "-m", "filevoyager", *sys.argv[2:]], check=True)
+    subprocess.run(
+        [str(python), "-I", "-m", "filevoyager", *sys.argv[2:]], check=True,
+        env={**os.environ, "FILEVOYAGER_LAUNCHER_PID": str(os.getpid())},
+    )
 
 
 def uninstall():

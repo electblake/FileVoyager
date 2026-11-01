@@ -109,6 +109,13 @@ class ExplorerWindow(QMainWindow):
         self.setCentralWidget(splitter)
 
         self.thumbnails = ThumbnailController(self.grid, self.model, load_image, self)
+        self.update_dialog = None
+        file_menu = self.menuBar().addMenu("&File")
+        quit_action = file_menu.addAction("&Quit")
+        quit_action.setShortcut("Ctrl+Q")
+        quit_action.triggered.connect(self.close)
+        help_menu = self.menuBar().addMenu("&Help")
+        help_menu.addAction("Check for updates…", self.show_updates)
         self.build_toolbar()
         self.status = QLabel()
         self.statusBar().addWidget(self.status, 1)
@@ -117,6 +124,14 @@ class ExplorerWindow(QMainWindow):
         self.files.rowsRemoved.connect(self.update_status)
         self.files.directoryLoaded.connect(self.directory_loaded)
         self.navigate(folder)
+
+    def show_updates(self):
+        from filevoyager.updates import UpdateDialog
+
+        if self.update_dialog is not None:
+            self.update_dialog.deleteLater()
+        self.update_dialog = UpdateDialog(self)
+        self.update_dialog.open()
 
     def build_toolbar(self):
         toolbar = QToolBar("Navigation")
@@ -312,7 +327,13 @@ class ExplorerWindow(QMainWindow):
         self.status.setText(f"{count:,} items   ·   {selected:,} selected")
 
     def closeEvent(self, event):
+        if self.update_dialog is not None and self.update_dialog.future is not None:
+            event.ignore()
+            return
         self.save_folder_state()
+        self.preferences.settings.sync()
+        if self.update_dialog is not None:
+            self.update_dialog.close()
         self.restore_timer.stop()
         self.navigation_timer.stop()
         self.navigation_executor.shutdown(wait=True, cancel_futures=True)
