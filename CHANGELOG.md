@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-10-31
+
 ### Added
 
 - Added uniform vector comparison and DBSCAN clustering interfaces with one-neighborhood-at-a-time memory use.
