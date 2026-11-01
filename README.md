@@ -19,6 +19,8 @@ The app opens the supplied folder or the last visited folder; the first launch o
 
 Each folder remembers its view, thumbnail size, and separate Details/Grid scroll positions. State is saved when leaving a folder or closing the window, including across application launches. Restoration waits for asynchronous loading/layout, and Qt clamps the saved position if the folder has become smaller. Media detection runs on the navigation worker; it does not decode files.
 
+Choose **View → Theme…**, select a theme from the dropdown, and click **Apply**. The applied theme is saved immediately and restored on launch; closing the dialog without applying leaves the current theme unchanged. [qt-themes](https://pypi.org/project/qt-themes/) supplies the application palette and Qt Fusion style, with `github_light` as the first-launch theme. Widgets and thumbnail delegates use Qt styling without custom stylesheets, colors, or fonts.
+
 Window position, size, maximized state, dock/toolbar layout and visibility, pane sizes, details columns and sort order, similarity controls, and Back/Forward history are saved on close and restored on launch through QSettings. Explicit launch paths start a new navigation history. Active analysis and video playback remain session-only.
 
 The [Preview Detail dock](docs/preview-detail.md) shows a thumbnail and Windows file/media properties for the selected item. Video previews include Play/Pause and a seek slider. Ctrl+Shift+P toggles the dock.

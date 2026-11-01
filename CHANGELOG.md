@@ -10,10 +10,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Added a Refresh button and F5 shortcut to rescan the current folder asynchronously.
+- Added View → Theme with a qt-themes dropdown, an Apply button, and a saved application-wide theme selection.
 
 ### Changed
 
 - Replaced Back, Forward, and Up navigation labels with Qt's built-in icons.
+
+### Fixed
+
+- Preserved the existing Qt Fusion style when applying themes to avoid restyling every widget; verified all 14 themes preserve browser selection, scrolling, and thumbnail generation.
 
 ## [0.1.8] - 2026-11-01
 

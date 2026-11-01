@@ -3,6 +3,7 @@ import json
 import os
 from pathlib import Path
 
+import qt_themes
 from PySide6.QtCore import QDir, QItemSelectionModel, QSignalBlocker, QTimer, Qt
 from PySide6.QtGui import QAction, QActionGroup
 from PySide6.QtWidgets import (
@@ -22,6 +23,7 @@ from filevoyager.item_actions import PackToFolderDialog, flatten_folders, pack_t
 from filevoyager.folder_merge import FolderMerge
 from filevoyager.link_drag import LinkDrag
 from filevoyager.selection import selected_row_count, selected_rows
+from filevoyager.themes import ThemeDialog
 
 
 def resolve_directory(path):
@@ -40,6 +42,10 @@ class ExplorerWindow(QMainWindow):
         self.resize(1180, 780)
         self.current_path = ""
         self.preferences = FolderPreferences() if preferences is None else preferences
+        self.themes = qt_themes.get_themes()
+        qt_themes.set_theme(self.themes[
+            self.preferences.settings.value("appearance/theme", "github_light", type=str)])
+        self.theme_dialog = None
         self.shortcuts = Shortcuts(self.preferences.settings)
         self.shortcuts_dialog = None
         self.folder_state = None
@@ -152,6 +158,8 @@ class ExplorerWindow(QMainWindow):
         quit_action = file_menu.addAction("&Quit")
         self.shortcuts.add("quit", "Quit", "Ctrl+Q", quit_action)
         quit_action.triggered.connect(self.close)
+        view_menu = self.menuBar().addMenu("&View")
+        view_menu.addAction("&Theme…", self.show_theme)
         help_menu = self.menuBar().addMenu("&Help")
         updates_action = help_menu.addAction("Check for updates…", self.show_updates)
         self.shortcuts.add("updates", "Check for updates", "", updates_action)
@@ -225,6 +233,12 @@ class ExplorerWindow(QMainWindow):
         if self.current_path:
             settings.setValue("navigation/history", json.dumps(self.history))
             settings.setValue("navigation/position", self.history_position)
+
+    def show_theme(self):
+        if self.theme_dialog is not None:
+            self.theme_dialog.deleteLater()
+        self.theme_dialog = ThemeDialog(self.themes, self.preferences.settings, self)
+        self.theme_dialog.open()
 
     def show_updates(self):
         from filevoyager.updates import UpdateDialog

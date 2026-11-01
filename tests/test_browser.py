@@ -8,10 +8,11 @@ import json
 import configparser
 from unittest.mock import patch
 
+import qt_themes
 from PySide6.QtCore import QItemSelection, QItemSelectionModel, QSettings, Qt
 from PySide6.QtGui import QImage
-from PySide6.QtTest import QTest
-from PySide6.QtWidgets import QLineEdit, QMessageBox
+from PySide6.QtTest import QSignalSpy, QTest
+from PySide6.QtWidgets import QDialogButtonBox, QLineEdit, QMessageBox, QWidget
 from support import QtCase
 
 from filevoyager.thumbnails import ThumbnailCache, ThumbnailKey
@@ -56,18 +57,18 @@ class BrowserTests(QtCase):
 
     def test_help_and_quit_menu_lifecycle(self):
         window = self.open_window()
-        window.menuBar().actions()[1].menu().actions()[0].trigger()
+        window.menuBar().actions()[2].menu().actions()[0].trigger()
         dialog = window.update_dialog
         self.assertTrue(dialog.isVisible())
         self.assertIsNone(dialog.future)
         self.assertTrue(dialog.check_button.isEnabled())
         dialog.reject()
-        window.menuBar().actions()[1].menu().actions()[0].trigger()
+        window.menuBar().actions()[2].menu().actions()[0].trigger()
         self.assertIsNot(window.update_dialog, dialog)
         self.assertTrue(window.update_dialog.isVisible())
         window.update_dialog.reject()
         menus = window.menuBar().actions()
-        self.assertEqual([action.text() for action in menus], ["&File", "&Help"])
+        self.assertEqual([action.text() for action in menus], ["&File", "&View", "&Help"])
         settings = window.preferences.settings
         settings.setValue("quit-test", "saved")
         with patch.object(settings, "sync", wraps=settings.sync) as sync:
@@ -75,6 +76,72 @@ class BrowserTests(QtCase):
             self.assertGreaterEqual(sync.call_count, 1)
         self.assertFalse(window.isVisible())
         self.assertIn("quit-test=saved", Path(settings.fileName()).read_text())
+
+    def test_theme_apply_close_and_restore(self):
+        window = self.open_window()
+        initial = self.app.palette()
+        window.menuBar().actions()[1].menu().actions()[0].trigger()
+        dialog = window.theme_dialog
+        self.assertTrue(dialog.isVisible())
+        self.assertEqual(dialog.theme.count(), len(qt_themes.get_themes()))
+        dialog.theme.setCurrentText("nord")
+        self.assertEqual(self.app.palette(), initial)
+        self.assertFalse(window.preferences.settings.contains("appearance/theme"))
+        QTest.mouseClick(dialog.buttons.button(QDialogButtonBox.StandardButton.Apply),
+                         Qt.MouseButton.LeftButton)
+        self.app.processEvents()
+        self.assertTrue(dialog.isVisible())
+        self.assertEqual(qt_themes.get_theme(), qt_themes.get_theme("nord"))
+        self.assertNotEqual(self.app.palette(), initial)
+        for widget in (window.tree, window.details, window.grid, window.preview_dock,
+                       window.similarity_dock, dialog.theme):
+            self.assertEqual(widget.palette(), self.app.palette())
+        self.assertEqual(self.app.styleSheet(), "")
+        self.assertTrue(all(widget.styleSheet() == "" for widget in window.findChildren(QWidget)))
+        stored = QSettings(window.preferences.settings.fileName(), QSettings.Format.IniFormat)
+        self.assertEqual(stored.value("appearance/theme"), "nord")
+        dialog.theme.setCurrentText("github_light")
+        QTest.mouseClick(dialog.buttons.button(QDialogButtonBox.StandardButton.Close),
+                         Qt.MouseButton.LeftButton)
+        window.show_theme()
+        self.assertEqual(window.theme_dialog.theme.currentText(), "nord")
+        window.theme_dialog.reject()
+        window.close()
+        qt_themes.set_theme("github_light")
+        reopened = ExplorerWindow(str(self.first), image_result, preferences=FolderPreferences(stored))
+        self.addCleanup(reopened.close)
+        self.assertEqual(qt_themes.get_theme(), qt_themes.get_theme("nord"))
+
+    def test_theme_switching_preserves_browser_state_and_style(self):
+        window = self.open_window()
+        window.view_actions[window.grid].trigger()
+        self.wait_for(lambda: window.grid.layout_complete and not window.pending_restore)
+        index = window.model.index(300, 0, window.grid.rootIndex())
+        window.selection.select(index, QItemSelectionModel.SelectionFlag.ClearAndSelect
+                                | QItemSelectionModel.SelectionFlag.Rows)
+        window.grid.scrollTo(index)
+        self.app.processEvents()
+        window.show_theme()
+        self.app.processEvents()
+        dialog = window.theme_dialog
+        position = window.grid.verticalScrollBar().value()
+        selected = window.selection.selectedIndexes()
+        generation = window.thumbnails.generation
+        style = self.app.style()
+        resets = QSignalSpy(window.model.modelReset)
+        for name in sorted(window.themes):
+            with self.subTest(theme=name):
+                dialog.theme.setCurrentText(name)
+                QTest.mouseClick(dialog.buttons.button(QDialogButtonBox.StandardButton.Apply),
+                                 Qt.MouseButton.LeftButton)
+                self.app.processEvents()
+                self.assertEqual(qt_themes.get_theme(), window.themes[name])
+                self.assertEqual(window.grid.verticalScrollBar().value(), position)
+                self.assertEqual(window.selection.selectedIndexes(), selected)
+                self.assertEqual(window.thumbnails.generation, generation)
+                self.assertEqual(resets.count(), 0)
+                self.assertIs(self.app.style(), style)
+        dialog.reject()
 
     def test_app_state_restores_after_reopening(self):
         window = self.open_window()
@@ -128,7 +195,7 @@ class BrowserTests(QtCase):
 
     def test_keyboard_shortcuts_menu_persists_and_rebinds_rename(self):
         window = self.open_window()
-        help_menu = window.menuBar().actions()[1].menu()
+        help_menu = window.menuBar().actions()[2].menu()
         help_menu.actions()[1].trigger()
         dialog = window.shortcuts_dialog
         self.assertTrue(dialog.isVisible())
