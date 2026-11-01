@@ -11,7 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Added a locked PyInstaller build, dependency notices, and a per-user Windows x64 Inno Setup installer.
+- Added a per-user Windows x64 Inno Setup installer that installs private Python 3.12, creates a platformdirs-managed venv, and installs the application wheel and hash-locked PyPI dependencies.
+- Documented Qt for Python Community Edition licensing and added installer failure exit-code checks.
 - Added a revision-pinned Spectra reference bundle documenting image feature formulas, weights, dependencies, and upstream tests.
 - Added standalone Spectra image feature functions, a uniform callable extractor interface, and NumPy/Pillow dependencies without application integration.
 - Added the initial Windows file browser with a folder tree, sortable Details view, thumbnail grid, shared selection, and Back/Forward/Up navigation.
@@ -24,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Updated grid scrollbar geometry before restoring a saved position after batched layout.
 - Normalized Qt file paths before Windows Shell thumbnail requests.
 - Prevented automatic retries of failed thumbnail requests within the same navigation/view generation.
 - Removed the measured 10,000-item scrolling stall caused by ancestor-folder enumeration on the UI thread.

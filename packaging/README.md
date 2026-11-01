@@ -1,50 +1,58 @@
 # Windows installer
 
-Build on Windows x64 with Python 3.12, uv, and Inno Setup 6.7.3. From the repository root, create a fresh build environment and supply the actual installed compiler path:
+Setup installs a private Python 3.12.10 runtime, creates a virtual environment using platformdirs, and installs FileVoyager's wheel and locked dependencies. It does not freeze the application or include the project directory. An internet connection to NuGet and PyPI is required during installation.
+
+## Build
+
+On Windows x64 with Python 3.12, uv, and Inno Setup 6.7.3, run from the repository root:
 
 ```powershell
-$env:UV_PROJECT_ENVIRONMENT = '.venv-build'
-$env:PYTHONPATH = ''
-uv sync --locked --group build --no-editable --python 3.12
-.venv-build\Scripts\python -m unittest discover -s tests -v
-.venv-build\Scripts\python packaging\build.py 'C:\Users\shoji\AppData\Local\Programs\Inno Setup 6\ISCC.exe'
+uv sync --locked
+uv run python -m unittest discover -s tests -v
+uv run python packaging\build.py 'C:\Users\shoji\AppData\Local\Programs\Inno Setup 6\ISCC.exe'
 ```
 
-`pyproject.toml` supplies the executable and installer version. `uv.lock` pins runtime and build packages. PyInstaller 6.20.0 and hooks 2026.4 produce `dist/FileVoyager`; Inno Setup produces `dist/installer/FileVoyager-Windows-x64-Setup-0.1.1.exe`. Build products are ignored by Git. Native build failures stop the Python build script. The freezer runs with isolated Python imports and only Windows system directories on PATH so unrelated developer tools cannot supply DLLs.
+Supply the actual installed compiler path. `pyproject.toml` supplies the wheel and installer version. `uv.lock` supplies all runtime versions and hashes. `uv export --locked` generates the installer requirements. The bootstrap zipapp contains only the installation script, platformdirs, and its license. Build products are ignored by Git. The output is `dist/installer/FileVoyager-Windows-x64-Setup-0.1.1.exe`.
 
-The installer uses a stable `FileVoyager.Desktop` AppId, installs below `%LOCALAPPDATA%\Programs\FileVoyager`, creates a Start menu shortcut and an optional desktop shortcut, and requires no elevation. It does not change PATH, download dependencies, register file associations, or install shared prerequisites. Settings remain in `%LOCALAPPDATA%\FileVoyager\FileVoyager.ini` through upgrades and uninstall. Silent installation uses `/VERYSILENT /SUPPRESSMSGBOXES /NORESTART`; post-install launch is skipped in silent mode.
+## Installation and updates
 
-The console executable preserves the application's native exception output. No application runtime code is changed for packaging.
+1. Inno Setup downloads the official PSF Windows x64 Python 3.12.10 NuGet archive, verifies its pinned SHA-256, and extracts it below `{app}/runtime`. Python is not registered globally and PATH is not modified.
+2. The private interpreter runs `bootstrap.pyz install`. `platformdirs.user_data_path('FileVoyager', appauthor=False) / 'venv'` selects `%LOCALAPPDATA%\FileVoyager\venv` on Windows.
+3. Python's `venv` module creates the environment with pip. Pip installs wheel-only dependencies directly from `https://pypi.org/simple`, with exact versions and required hashes. Pip configuration is isolated and retries are disabled. The local FileVoyager wheel is installed with dependency resolution disabled because dependencies were already installed from the lock.
+4. Start menu and optional desktop shortcuts invoke the bootstrap launcher, which executes the venv's Python with `-I -m filevoyager`. The console preserves native exception output.
 
-## Dependency inventory
+Installation is per-user without elevation, defaults to `%LOCALAPPDATA%\Programs\FileVoyager`, and keeps the stable `FileVoyager.Desktop` AppId. Reinstalling updates the same environment from the supplied requirements and wheel. Do not move the installed private Python directory: the venv refers to it.
 
-| Payload | Version | Scope and packaging |
-| --- | --- | --- |
-| CPython | 3.12.10 in the verified build | Private interpreter DLL, standard library and extension modules collected by PyInstaller; PSF license included |
-| PySide6 / Essentials / Addons / shiboken6 | 6.12.0 | Private Qt DLLs, bindings, platform and image plugins selected by PyInstaller's Qt hooks |
-| comtypes | 1.4.17 | Private Python COM bindings; MIT notice included |
-| NumPy | 2.5.4 | Private extension modules and native numerical libraries selected by its hook; upstream notices included |
-| Pillow | 13.0.0 | Private image codecs and modules selected by its hook; upstream license included |
-| platformdirs | 4.14.2 | Private Python module; MIT notice included |
-| Spectra-derived processors | Repository revision | Explicit hidden import because the browser does not import this standalone API; LICENSE and README included |
-| Windows Shell / COM / GDI | Operating system | System-owned APIs; no DLLs copied into Windows directories |
-| Windows ICU | Operating system | Uses the Windows ICU API required by Qt; no developer-tool ICU DLL is bundled |
-| Microsoft C/C++ runtime | Versions supplied with Python and Qt wheels | Private DLLs collected by dependency analysis; no system-wide runtime installation |
+The approved Inno exit-code check reports failure when environment creation or pip installation fails, returns a nonzero Setup exit code, disables post-install launch, and retains original command output in the setup log. The wizard displays installation failure; the uninstaller can remove the incomplete installation. There are no retries, alternate indexes, fallback interpreters, or custom recovery. On 2026-10-31 the user explicitly authorized this exit-code check as an exception to the project's custom-error-path restriction and requested venv installation in place of the Inno skill's default frozen-bundle workflow.
 
-Qt PDF and WebEngine wheels are transitive locked dependencies. The Qt image-plugin hook includes Qt PDF and supporting Qt DLLs; WebEngine is not collected. There are no helper executables or installer-time downloads. Private runtime updates ship with a new FileVoyager installer; Windows owns system API updates. Native payloads are x64. Third-party notices ship in `_internal/licenses` and the image-processor package.
+Close FileVoyager before reinstalling or uninstalling. Uninstall removes the venv and the private interpreter. Folder preferences at `%LOCALAPPDATA%\FileVoyager\FileVoyager.ini` remain. The venv is application-owned; manually installed packages inside it are also removed. No system Python installation is modified.
 
-The installed Qt wheels provide `LicenseRef-Qt-Commercial.txt`; those exact notices are retained. Confirm the applicable Qt commercial distribution rights before publishing this artifact. The local build is unsigned; no signing identity was provided.
+Silent installation: `/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /LOG="install.log"`. Post-install launch is skipped in silent mode. Setup logging is enabled automatically; provide `/LOG` to choose a known path.
+
+## Dependency sources
+
+| Component | Source and ownership |
+| --- | --- |
+| Python 3.12.10 x64 | PSF NuGet `python` package, downloaded by Inno into the private application directory |
+| platformdirs 4.14.2 | MIT-licensed bootstrap module; also installed in the venv from PyPI |
+| Qt for Python Community 6.12.0 | Public PyPI PySide6, Essentials, Addons and shiboken6; metadata declares LGPL/GPL licensing |
+| Qt PDF / WebEngine 6.12.0.140 | Transitive public PyPI dependencies installed with PySide6 |
+| comtypes 1.4.17, NumPy 2.5.4, Pillow 13.0.0 | Public PyPI wheels installed with their native libraries, metadata and notices |
+| FileVoyager 0.1.1 | Locally built wheel, including the Spectra-derived processors and their license |
+| Windows Shell / COM / GDI | Operating-system APIs; not installed by Setup |
+
+Python URL: `https://api.nuget.org/v3-flatcontainer/python/3.12.10/python.3.12.10.nupkg`.
+SHA-256: `0eb85c2dfccccf1b17352de4c397f69194035b7d37149eacc16f1147d93de3b8`.
+Extracted size: 39,200,793 bytes. The archive includes Python, pip, venv and license files under `tools`.
+
+See [open-source notices](OPEN-SOURCE-NOTICES.md). The prior commercial-only interpretation based on `LicenseRef-Qt-Commercial.txt` was incorrect: the public PyPI packages explicitly declare the open-source licensing alternatives. The installer is unsigned.
 
 ## Release verification
 
-Run the relocated bundle with only Windows system directories on PATH and without PYTHONPATH or the source tree as its working directory. Check navigation, sorting, view changes, saved preferences, and existing Shell thumbnails. Check optional processor imports and codecs separately when releasing changes to them.
+VM testing was explicitly waived by the user on 2026-10-31. Host installation tests do not establish compatibility with a clean Windows machine. Verify compilation, host silent installation, the installed wheel's tests, launch, same-version reinstall, uninstall, and preference preservation before publishing. This is the first published installer; a previous-release upgrade cannot yet be tested.
 
-In a disposable Windows x64 machine, test interactive clean installation, launch, same-AppId upgrade, silent installation and uninstallation. Verify shortcuts, preserved settings, and removal of private dependencies. This first installer has no prior production installer for a previous-release upgrade test.
+Verified on 2026-10-31: all 29 source tests and all 29 installed-wheel tests passed. Host silent install, same-version reinstall, final clean install and uninstall returned 0. Preferences survived uninstall byte-for-byte. A deliberate venv creation failure returned 1 and retained the original traceback. Uninstalling while the smoke-test app was still running failed on a locked DLL; after stopping the test processes, cleanup returned 0.
 
-On 2026-10-31 the host's VirtualBox inventory contained no registered machines, so disposable-machine lifecycle verification was blocked. Host smoke testing does not establish clean-machine compatibility. No VM or host installer lifecycle test is claimed.
+The installed native-thumbnail benchmark completed 193 requests with zero failures. The final 10,000-item synthetic benchmark measured 17.19 ms maximum scrolling heartbeat gap, 36.16 ms warm navigation, and 176.72 MiB peak working set; the same-session baseline was 16.21 ms, 38.68 ms, and 177.04 MiB. A preceding run was slower, so these are workload-specific observations, not latency guarantees. The scroll-restoration test exposed a stale scrollbar-range race; the grid now updates geometry before announcing layout completion.
 
-The initial relocated smoke test caught an incompatible ICU DLL collected from a developer tool on PATH. The build script now restricts the freezer's PATH to Windows system directories.
-
-Final host checks passed: 29 unit/integration tests, Inno compilation, and relocated executable startup, folder navigation, Back navigation, and Grid switching with Windows-only PATH and empty PYTHONPATH/PYTHONHOME. The smoke test produced no stderr output. Frozen media-thumbnail and optional processor/codec coverage, settings persistence across installation, and installer lifecycle checks remain unverified.
-
-The unsigned 0.1.1 installer is 44,620,237 bytes. SHA-256: `d5c9ad2903013b53d724048a725538299e7d811ac0c80172cab851c36f19c9a7`.
+The released unsigned installer is 2,632,406 bytes, SHA-256 `4da45cb18e6d01a6cf50f12674ab86ee57d47cf00c69dd456b0e4716698e104b`.

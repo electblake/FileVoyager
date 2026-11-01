@@ -77,6 +77,7 @@ class ThumbnailGrid(QListView):
         count = self.model().rowCount(self.rootIndex())
         if count and not self.visualRect(self.model().index(count - 1, 0, self.rootIndex())).isValid():
             return
+        self.updateGeometries()
         self.layout_complete = True
         self.layoutReady.emit()
 
