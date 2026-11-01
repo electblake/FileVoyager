@@ -138,6 +138,37 @@ class BrowserTests(QtCase):
         self.wait_for(lambda: reopened.current_path == str(self.first))
         self.assertTrue(reopened.isMaximized())
 
+    def test_modifier_click_selection_in_details_and_grid(self):
+        window = self.open_window()
+        window.preview_dock.hide()
+        window.similarity_dock.hide()
+        modifiers = Qt.KeyboardModifier
+        for view in (window.details, window.grid):
+            window.switch_view(view)
+            self.wait_for(lambda: not window.pending_restore)
+            # Cross grid rows, then shrink/reverse the range and add another.
+            for row, modifier, expected in (
+                (1, modifiers.NoModifier, {1}),
+                (8, modifiers.ControlModifier, {1, 8}),
+                (8, modifiers.ControlModifier, {1}),
+                (2, modifiers.NoModifier, {2}),
+                (9, modifiers.ShiftModifier, set(range(2, 10))),
+                (5, modifiers.ShiftModifier, set(range(2, 6))),
+                (0, modifiers.ShiftModifier, {0, 1, 2}),
+                (7, modifiers.ControlModifier, {0, 1, 2, 7}),
+                (10, modifiers.ControlModifier | modifiers.ShiftModifier,
+                 {0, 1, 2, 7, 8, 9, 10}),
+                (4, modifiers.NoModifier, {4}),
+            ):
+                with self.subTest(view=type(view).__name__, row=row, modifier=modifier):
+                    index = window.model.index(row, 0, view.rootIndex())
+                    view.scrollTo(index)
+                    point = view.visualRect(index).center()
+                    self.assertEqual(view.indexAt(point), index)
+                    QTest.mouseClick(view.viewport(), Qt.MouseButton.LeftButton, modifier, point)
+                    self.assertEqual({item.row() for item in window.selection.selectedRows(0)}, expected)
+                    self.assertEqual(window.selection.currentIndex().row(), row)
+
     def test_shared_selection_sort_and_history(self):
         window = self.open_window()
         index = window.model.index(5, 0, window.details.rootIndex())
