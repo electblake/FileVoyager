@@ -1,17 +1,18 @@
 from pathlib import Path
 import tempfile
 import threading
+from types import SimpleNamespace
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from PySide6.QtCore import QItemSelectionModel, QPersistentModelIndex, QSettings, QSignalBlocker, Qt
 from PySide6.QtGui import QContextMenuEvent
 from PySide6.QtTest import QTest
-from PySide6.QtWidgets import QDialogButtonBox, QInputDialog, QLineEdit, QToolBar
+from PySide6.QtWidgets import QDialogButtonBox, QInputDialog, QLineEdit, QMessageBox, QToolBar
 
 from support import QtCase
 from test_browser import image_result
-from filevoyager.item_actions import flatten_folders, join_to_folder, pack_to_folder
+from filevoyager.item_actions import flatten_folders, join_to_folder, pack_to_folder, transfer_item
 from filevoyager.preferences import FolderPreferences
 from filevoyager.window import ExplorerWindow
 from filevoyager.file_model import directory_snapshot
@@ -24,6 +25,43 @@ class ItemOperationTests(unittest.TestCase):
         self.addCleanup(scratch.cleanup)
         self.root = Path(scratch.name)
 
+    def test_move_failure_does_not_copy_over_a_new_conflict(self):
+        source, target = self.root / "source.txt", self.root / "target.txt"
+        source.write_text("source")
+
+        def raced_rename(path, destination):
+            destination.write_text("created during move")
+            raise FileExistsError(destination)
+
+        with patch.object(Path, "rename", raced_rename):
+            with self.assertRaises(FileExistsError):
+                transfer_item(source, target, False, Mock())
+        self.assertEqual(source.read_text(), "source")
+        self.assertEqual(target.read_text(), "created during move")
+
+    def test_cross_volume_move_copies_before_removing_source(self):
+        for directory in (False, True):
+            source, target = self.root / f"source-{directory}", self.root / f"target-{directory}"
+            if directory:
+                source.mkdir()
+                (source / "child.txt").write_text("contents")
+            else:
+                source.write_text("contents")
+            original_stat = Path.stat
+            measured = []
+
+            def volume_stat(path, *args, **kwargs):
+                result = original_stat(path, *args, **kwargs)
+                if path == source and not measured:
+                    measured.append(True)
+                    return SimpleNamespace(st_dev=result.st_dev + 1)
+                return result
+
+            with patch.object(Path, "stat", volume_stat):
+                transfer_item(source, target, False, Mock())
+            self.assertFalse(source.exists())
+            self.assertEqual((target / "child.txt" if directory else target).read_text(), "contents")
+
     def test_pack_move_and_copy_files_and_folders(self):
         for copy_mode in (True, False):
             with self.subTest(copy_mode=copy_mode):
@@ -35,7 +73,7 @@ class ItemOperationTests(unittest.TestCase):
                 (source / "untouched.txt").write_text("untouched")
                 paths = (source / "file.txt", source / "folder")
                 target = source / "packed"
-                pack_to_folder(paths, target, copy_mode)
+                pack_to_folder(paths, target, copy_mode, Mock())
                 self.assertEqual((target / "file.txt").read_text(), "file")
                 self.assertEqual((target / "folder/nested/child.txt").read_text(), "child")
                 self.assertEqual([path.exists() for path in paths], [copy_mode, copy_mode])
@@ -66,7 +104,7 @@ class ItemOperationTests(unittest.TestCase):
             (second / "b.txt").write_text("b")
             (source / "unselected.txt").write_text("untouched")
             destination = source / "Joined"
-            join_to_folder((first, second), destination, copy_mode)
+            join_to_folder((first, second), destination, copy_mode, Mock())
             self.assertEqual({item.name for item in destination.iterdir()}, {"a.txt", "b.txt", "nested"})
             self.assertEqual((destination / "nested/child.txt").read_text(), "child")
             self.assertEqual((destination / "a.txt").read_text(), "a")
@@ -76,17 +114,59 @@ class ItemOperationTests(unittest.TestCase):
             self.assertEqual(bool(list(second.iterdir())), copy_mode)
             self.assertEqual((source / "unselected.txt").read_text(), "untouched")
 
-    def test_join_collision_does_not_overwrite_either_file(self):
-        first, second = self.root / "one", self.root / "two"
-        first.mkdir()
-        second.mkdir()
-        (first / "same.txt").write_text("one")
-        (second / "same.txt").write_text("two")
-        destination = self.root / "Joined"
-        with self.assertRaises(FileExistsError):
-            join_to_folder((first, second), destination, False)
-        self.assertEqual((destination / "same.txt").read_text(), "one")
-        self.assertEqual((second / "same.txt").read_text(), "two")
+    def test_pack_and_join_share_file_conflict_choices_in_move_and_copy_modes(self):
+        for operation in (pack_to_folder, join_to_folder):
+            for copy_mode in (False, True):
+                for answer in ("replace", "skip", "cancel"):
+                    with self.subTest(operation=operation.__name__, copy=copy_mode, answer=answer):
+                        root = self.root / f"{operation.__name__}-{copy_mode}-{answer}"
+                        source, destination = root / "source", root / "target"
+                        source.mkdir(parents=True)
+                        destination.mkdir()
+                        item = source / "same.txt"
+                        item.write_text("new")
+                        (destination / item.name).write_text("old")
+                        ask = Mock(side_effect=["merge", answer])
+                        paths = (item,) if operation is pack_to_folder else (source,)
+                        result = operation(paths, destination, copy_mode, ask)
+                        self.assertEqual(ask.call_count, 2)
+                        self.assertEqual(ask.call_args.args, (item, destination / item.name, False))
+                        self.assertEqual((destination / item.name).read_text(),
+                                         "new" if answer == "replace" else "old")
+                        self.assertEqual(item.exists(), copy_mode or answer != "replace")
+                        if answer == "cancel":
+                            self.assertIn("stopped", result)
+
+    def test_pack_and_join_declining_existing_destination_changes_nothing(self):
+        for operation in (pack_to_folder, join_to_folder):
+            root = self.root / operation.__name__
+            source, destination = root / "source", root / "target"
+            source.mkdir(parents=True)
+            destination.mkdir()
+            item = source / "item.txt"
+            item.write_text("source")
+            paths = (item,) if operation is pack_to_folder else (source,)
+            ask = Mock(return_value="cancel")
+            self.assertEqual(operation(paths, destination, False, ask), "Action cancelled")
+            self.assertTrue(item.exists())
+            self.assertEqual(list(destination.iterdir()), [])
+            ask.assert_called_once_with(paths[0], destination, True)
+
+    def test_join_duplicate_nested_folders_merge_and_keep_source_in_copy_mode(self):
+        for copy_mode in (False, True):
+            root = self.root / str(copy_mode)
+            first, second, destination = root / "one", root / "two", root / "Joined"
+            for source in (first, second):
+                (source / "nested").mkdir(parents=True)
+                (source / "nested/same.txt").write_text(source.name)
+            (second / "nested/unique.txt").write_text("unique")
+            ask = Mock(return_value="skip")
+            join_to_folder((first, second), destination, copy_mode, ask)
+            ask.assert_called_once_with(second / "nested/same.txt", destination / "nested/same.txt", False)
+            self.assertEqual((destination / "nested/same.txt").read_text(), "one")
+            self.assertEqual((second / "nested/same.txt").read_text(), "two")
+            self.assertEqual((destination / "nested/unique.txt").read_text(), "unique")
+            self.assertEqual((second / "nested/unique.txt").exists(), copy_mode)
 
     def test_collisions_surface_without_overwriting(self):
         nested = self.root / "nested"
@@ -97,11 +177,55 @@ class ItemOperationTests(unittest.TestCase):
             flatten_folders((self.root,))
         self.assertEqual((self.root / "same.txt").read_text(), "original")
         self.assertEqual((nested / "same.txt").read_text(), "nested")
-        with self.assertRaises(FileExistsError):
-            pack_to_folder((nested,), self.root, False)
 
 
 class ItemActionUiTests(QtCase):
+    def test_pack_and_join_use_rename_dialogs_from_worker_in_move_and_copy_modes(self):
+        for action in ("pack", "join"):
+            for copy_mode in (False, True):
+                with self.subTest(action=action, copy_mode=copy_mode):
+                    root = self.root / f"conflict-{action}-{copy_mode}"
+                    source, destination = root / "source", root / "target"
+                    source.mkdir(parents=True)
+                    destination.mkdir()
+                    (source / "same.txt").write_text("new")
+                    (destination / "same.txt").write_text("old")
+                    window = ExplorerWindow(str(root), image_result, preferences=FolderPreferences(
+                        QSettings(str(root / "settings.ini"), QSettings.Format.IniFormat)))
+                    window.show()
+                    self.addCleanup(window.close)
+                    self.wait_for(lambda: window.current_path == str(root) and not window.pending_restore)
+                    questions = []
+                    ui_thread = threading.get_ident()
+
+                    def answer(question):
+                        self.assertEqual(threading.get_ident(), ui_thread)
+                        questions.append(question.folder)
+                        dialog = window.folder_merge.dialog
+                        if question.folder:
+                            self.assertEqual(dialog.windowTitle(), "Confirm Folder Replace")
+                            dialog.button(QMessageBox.StandardButton.Yes).click()
+                        else:
+                            self.assertEqual(dialog.windowTitle(), "Replace or Skip File")
+                            next(button for button in dialog.buttons() if button.text() == "&Replace").click()
+
+                    window.folder_merge.question.connect(answer)
+                    paths = (source / "same.txt",) if action == "pack" else (source,)
+                    getattr(window, f"show_{action}_dialog")(paths=paths)
+                    dialog = getattr(window, f"{action}_dialog")
+                    # Pack's destination is relative to the selected item's parent.
+                    if action == "pack":
+                        destination.rename(source / "target")
+                        destination = source / "target"
+                    dialog.folder_name.setText("target")
+                    dialog.copy_mode.setChecked(copy_mode)
+                    dialog.accept()
+                    self.wait_for(lambda: window.action_future is None)
+                    self.assertEqual(questions, [True, False])
+                    self.assertEqual((destination / "same.txt").read_text(), "new")
+                    self.assertEqual((source / "same.txt").exists(), copy_mode)
+                    window.close()
+
     def test_pack_refreshes_loaded_views_once_without_watcher_notifications(self):
         folder = self.root / "refresh-pack"
         folder.mkdir()
@@ -307,8 +431,11 @@ class ItemActionUiTests(QtCase):
                                point, view.viewport().mapToGlobal(point)))
             menu = window.item_menus[view]
             self.assertTrue(menu.isVisible())
-            self.assertEqual(menu.actions(), [window.flatten_action, window.pack_action,
-                                             window.join_action, window.rename_actions[view]])
+            self.assertEqual(menu.actions()[:2], list(window.file_clipboard.actions[view][:2]))
+            self.assertEqual(menu.actions()[3], window.rename_actions[view])
+            self.assertTrue(menu.actions()[4].isSeparator())
+            self.assertEqual(menu.actions()[5:], [window.flatten_action, window.pack_action,
+                                                window.join_action])
             self.assertEqual(len(window.selection.selectedRows()), 2)
             self.assertFalse(window.flatten_action.isEnabled())
             self.assertFalse(window.rename_actions[view].isEnabled())
@@ -334,6 +461,8 @@ class ItemActionUiTests(QtCase):
             self.wait_for(lambda: view.findChild(QLineEdit) is None)
             view.customContextMenuRequested.emit(view.viewport().rect().bottomRight())
             self.assertFalse(menu.isVisible())
+            self.assertTrue(window.background_menus[view].isVisible())
+            window.background_menus[view].close()
 
     def test_tree_context_menu_targets_clicked_folder(self):
         folder = self.root / "tree-context"

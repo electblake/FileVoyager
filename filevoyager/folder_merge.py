@@ -1,13 +1,14 @@
-"""Folder rename conflicts: GUI confirmations, worker-thread filesystem work."""
+"""Shared file-operation conflict dialogs and folder rename merging."""
 
 from dataclasses import dataclass, field
 from datetime import datetime
-import os
 from pathlib import Path
 from threading import Event
 
 from PySide6.QtCore import QObject, Qt, Signal
 from PySide6.QtWidgets import QMessageBox
+
+from filevoyager.item_actions import transfer_contents
 
 
 @dataclass
@@ -90,25 +91,4 @@ class FolderMerge(QObject):
         return "Folder merge complete; skipped items kept in source" if source.exists() else "Folder merge complete"
 
     def merge_contents(self, source, destination):
-        with os.scandir(source) as entries:
-            for entry in entries:
-                item = Path(entry.path)
-                target = destination / item.name
-                if not target.exists():
-                    item.rename(target)
-                elif (item.is_dir() and target.is_dir()
-                      and not item.is_symlink() and not target.is_symlink()
-                      and not item.is_junction() and not target.is_junction()):
-                    if not self.merge_contents(item, target):
-                        return False
-                else:
-                    answer = self.ask(item, target, False)
-                    if answer == "cancel":
-                        return False
-                    if answer == "replace":
-                        item.replace(target)
-        with os.scandir(source) as remaining:
-            empty = next(remaining, None) is None
-        if empty:
-            source.rmdir()
-        return True
+        return transfer_contents(source, destination, False, self.ask, remove_source=True)

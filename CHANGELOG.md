@@ -10,10 +10,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Added Help > Install in File Explorer with per-user folder, folder-background, and drive context menus, background installation, and a bundled icon.
+- Added Cut, Copy, and Paste with standard shortcuts, folder and background context menus, and Windows file clipboard formats.
+- Added drag-to-move in Details, Grid, and the folder tree, with a remembered Select checkbox for drag-to-select.
 
 ### Fixed
 
 - Corrected the corrupted menu arrow in the File Explorer installation instructions.
+- Shared folder merging and Replace, Skip, and Cancel decisions across rename merges, packing, joining, pasting, and move drops.
+- Preserved skipped cut items, unrelated clipboard changes, and source files when a move failed; handled cross-volume moves explicitly.
+- Removed repeated selection expansion and per-hover batch scans that stalled large selections and move drags.
+- Preserved single-click and double-click behavior while keeping selected batches intact during drags, and released cached drag paths after drops.
+- Stopped rescanning moved-away cached folders and navigated to the parent when moving the current folder.
 
 ## [0.2.0] - 2026-11-01
 

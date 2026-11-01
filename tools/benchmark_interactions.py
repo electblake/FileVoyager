@@ -71,9 +71,24 @@ def main():
             moves.append((time.perf_counter() - start) * 1000)
             assert event.isAccepted()
         app.sendEvent(window.details.viewport(), QDragLeaveEvent())
+        enter = QDragEnterEvent(point, Qt.DropAction.MoveAction, mime,
+                               Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier)
+        app.sendEvent(window.details.viewport(), enter)
+        assert enter.isAccepted()
+        move_samples = []
+        for _ in range(100):
+            event = QDragMoveEvent(point, Qt.DropAction.MoveAction, mime,
+                                  Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier)
+            start = time.perf_counter()
+            app.sendEvent(window.details.viewport(), event)
+            move_samples.append((time.perf_counter() - start) * 1000)
+            assert event.isAccepted()
+        app.sendEvent(window.details.viewport(), QDragLeaveEvent())
         metrics = {"items": args.items, "selection_ms": samples,
                    "drag_move_p50_ms": sorted(moves)[50], "drag_move_p95_ms": sorted(moves)[95],
                    "drag_move_max_ms": max(moves), "scope": "Real files; synthetic thumbnails; offscreen Qt"}
+        metrics.update(move_drag_p50_ms=sorted(move_samples)[50],
+                       move_drag_p95_ms=sorted(move_samples)[95], move_drag_max_ms=max(move_samples))
         (output / f"{args.prefix}-interactions.json").write_text(json.dumps(metrics, indent=2))
         print(json.dumps(metrics, indent=2))
         window.close()
