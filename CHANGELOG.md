@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.3] - 2026-11-06
+
 ### Fixed
 
 - Kept broken Windows shortcuts visible without treating missing targets as navigable folders or failing folder scans.

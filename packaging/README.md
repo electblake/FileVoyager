@@ -13,7 +13,7 @@ uv run --locked python -m unittest discover -s tests -v
 uv run python packaging\build.py 'C:\Users\shoji\AppData\Local\Programs\Inno Setup 6\ISCC.exe'
 ```
 
-Supply the actual installed compiler path. `pyproject.toml` supplies the wheel and installer version. `uv.lock` supplies all runtime versions and hashes. `uv export --locked` generates the installer requirements. The bootstrap zipapp contains only the installation script, platformdirs, and its license. Build products are ignored by Git. The output is `dist/installer/FileVoyager-Windows-x64-Setup-0.4.2.exe`.
+Supply the actual installed compiler path. `pyproject.toml` supplies the wheel and installer version. `uv.lock` supplies all runtime versions and hashes. `uv export --locked` generates the installer requirements. The bootstrap zipapp contains only the installation script, platformdirs, and its license. Build products are ignored by Git. The output is `dist/installer/FileVoyager-Windows-x64-Setup-0.4.3.exe`.
 
 ## Installation and updates
 
@@ -88,3 +88,5 @@ Release 0.4.0 adds expandable Windows folder shortcuts, branch-preserving naviga
 Release 0.4.1 fixes preview races during file operations and restores previews after refresh. All 123 tests passed before the version-only release changes. The wheel matched all 36 tested source modules and the icon; dependency pins were unchanged. Bootstrap contents, all 17 hashed requirements, Inno compilation, installer product version, and SHA-256 checks passed. The installer remains unsigned; full Setup and upgrade/uninstall execution were not repeated.
 
 Release 0.4.2 adds the Edit clipboard menu, live Paste availability, and cut-item dimming in Details, Grid, and the folder tree. All 127 tests passed before the version-only release changes, including partial-cut clipboard state and selection-expansion checks. The wheel matched all 36 tested source modules and the icon; dependency pins were unchanged. Bootstrap contents, all 17 hashed requirements, Inno compilation, installer product version, and SHA-256 checks passed. The installer remains unsigned; full Setup and upgrade/uninstall execution were not repeated.
+
+Release 0.4.3 fixes missing-file thumbnail requests and broken shortcut folder scans. Reused the recent 131-test pass, including the new eligibility and deleted-target regressions; no full-suite rerun was required for version and documentation changes. The release wheel matched all tested source modules and the icon; dependency pins were unchanged. Bootstrap contents, Inno compilation, installer product version, and SHA-256 checks passed. The installer remains unsigned; full Setup execution was not repeated. Shell extraction failures for existing unsupported or invalid media remain outside this fix.
