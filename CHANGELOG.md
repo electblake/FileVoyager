@@ -7,10 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Fixed
-
-- Read directory-entry metadata without following symbolic links so dangling links remain visible and do not fail folder scans.
-- Stopped the file-model polling timer and released completed work before retrieving its result, so a failed scan raises once instead of repeating indefinitely.
+## [0.4.5] - 2026-11-06
 
 ### Added
 
@@ -19,6 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Moved action progress and completion messages from the action toolbar to the status bar. Completion messages clear after five seconds to restore item and selection counts.
+
+### Fixed
+
+- Kept dangling symbolic links visible without failing folder scans or treating missing targets as navigable folders.
+- Stopped failed folder scans from printing the same error indefinitely.
 
 ## [0.4.4] - 2026-11-06
 
