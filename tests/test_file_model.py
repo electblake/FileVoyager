@@ -1,4 +1,5 @@
 import threading
+from concurrent.futures import Future
 from unittest.mock import patch
 
 from PySide6.QtCore import QPersistentModelIndex, Qt
@@ -46,6 +47,34 @@ class FileModelTests(QtCase):
         self.assertTrue(all(t != threading.get_ident() for t in threads))
         self.assertEqual(selected.data(), 'file2.txt')
         self.assertEqual(selected.row(), 1)
+
+    def test_dangling_directory_symlink_remains_visible(self):
+        target = self.folder / 'target'
+        target.mkdir()
+        link = self.folder / '.autogallery'
+        link.symlink_to(target, target_is_directory=True)
+        self.load(self.folder)
+        self.assertTrue(self.model.isDir(self.model.index(str(link))))
+        target.rmdir()
+        self.model.request(self.model.current, True)
+        self.settled()
+        index = self.model.index(str(link))
+        self.assertTrue(index.isValid())
+        self.assertFalse(self.model.isDir(index))
+        self.assertEqual(self.model.navigation_path(index), '')
+
+    def test_failed_scan_stops_polling_before_raising(self):
+        future = Future()
+        failure = FileNotFoundError('missing directory')
+        future.set_exception(failure)
+        self.model.future = future
+        self.model.timer.start()
+        with self.assertRaises(FileNotFoundError) as raised:
+            self.model.poll()
+        self.assertIs(raised.exception, failure)
+        self.assertIsNone(self.model.future)
+        self.assertFalse(self.model.timer.isActive())
+        self.assertIsNone(self.model.applying)
 
     def test_watcher_inserts_removes_and_preserves_surviving_index(self):
         for name in ('a.txt', 'c.txt', 'd.txt'):

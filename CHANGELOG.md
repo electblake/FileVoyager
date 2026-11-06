@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Read directory-entry metadata without following symbolic links so dangling links remain visible and do not fail folder scans.
+- Stopped the file-model polling timer and released completed work before retrieving its result, so a failed scan raises once instead of repeating indefinitely.
+
 ### Added
 
 - Added an open-folder button between Refresh and the path field to open the current folder in Windows File Explorer.

@@ -35,7 +35,7 @@ def directory_snapshot(path, previous, column, descending, scan):
         shortcuts = []
         with os.scandir(path) as entries:
             for entry in entries:
-                metadata = entry.stat()
+                metadata = entry.stat(follow_symlinks=False)
                 if metadata.st_file_attributes & stat.FILE_ATTRIBUTE_HIDDEN:
                     continue
                 directory = entry.is_dir()
@@ -263,9 +263,10 @@ class FileModel(QAbstractItemModel):
     def poll(self):
         if not self.future.done():
             return
-        result = self.future.result()
+        future = self.future
         self.future = None
         self.timer.stop()
+        result = future.result()
         root, revision = self.active
         if revision != root.revision:
             self.dispatch()
