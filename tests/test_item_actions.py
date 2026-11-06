@@ -640,6 +640,7 @@ class ItemActionUiTests(QtCase):
         with patch("filevoyager.window.pack_to_folder", side_effect=pack):
             dialog.accept()
             self.wait_for(started.is_set)
+            self.assertEqual(window.statusBar().currentMessage(), "Packing selected items…")
             self.assertFalse(window.pack_action.isEnabled())
             self.assertFalse(window.flatten_action.isEnabled())
             window.navigate(str(self.root))
@@ -649,4 +650,4 @@ class ItemActionUiTests(QtCase):
         self.assertNotEqual(threads, [threading.get_ident()])
         self.assertEqual((folder / "Packed/file.txt").read_text(), "text")
         self.assertTrue((folder / "file.txt").exists())
-        self.assertEqual(window.action_status.text(), "Action complete")
+        self.assertEqual(window.statusBar().currentMessage(), "Action complete")

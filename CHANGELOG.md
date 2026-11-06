@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added an open-folder button between Refresh and the path field to open the current folder in Windows File Explorer.
+
+### Changed
+
+- Moved action progress and completion messages from the action toolbar to the status bar. Completion messages clear after five seconds to restore item and selection counts.
+
 ## [0.4.4] - 2026-11-06
 
 ### Added

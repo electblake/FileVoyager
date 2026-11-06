@@ -2,6 +2,7 @@ from concurrent.futures import ThreadPoolExecutor
 import json
 import os
 from pathlib import Path
+import subprocess
 
 import qt_themes
 from PySide6.QtCore import QDir, QEvent, QItemSelectionModel, QSignalBlocker, QTimer, Qt
@@ -315,7 +316,12 @@ class ExplorerWindow(QMainWindow):
         self.shortcuts.add("refresh", "Refresh", "F5", self.refresh_action)
         self.refresh_action.triggered.connect(lambda: self.files.request(self.files.current, True))
         self.refresh_action.triggered.connect(lambda: self.folders.directory_changed(self.current_path))
-        toolbar.addActions([self.back_action, self.forward_action, self.up_action, self.refresh_action])
+        self.open_explorer_action = QAction(
+            style.standardIcon(QStyle.StandardPixmap.SP_DirOpenIcon), "Open in File Explorer", self)
+        self.open_explorer_action.triggered.connect(
+            lambda: subprocess.Popen(["explorer.exe", self.current_path]))
+        toolbar.addActions([self.back_action, self.forward_action, self.up_action, self.refresh_action,
+                            self.open_explorer_action])
         self.address = QLineEdit()
         self.address.setPlaceholderText("Folder path")
         self.address.setClearButtonEnabled(True)
@@ -374,8 +380,6 @@ class ExplorerWindow(QMainWindow):
         self.shortcuts.add("flatten", "Flatten", "", self.flatten_action)
         self.flatten_action.setToolTip(
             "Move nested files into each selected folder and remove its emptied subfolders")
-        self.action_status = QLabel()
-        toolbar.addWidget(self.action_status)
         self.selection.selectionChanged.connect(self.update_item_actions)
         self.update_item_actions()
 
@@ -499,7 +503,7 @@ class ExplorerWindow(QMainWindow):
         self.action_future = self.action_executor.submit(execute_item_action, operation, args,
                                                          self.action_refresh_paths, self.preview_dock.future)
         self.file_clipboard.update()
-        self.action_status.setText(label)
+        self.statusBar().showMessage(label)
         self.update_item_actions()
         self.action_timer.start()
 
@@ -509,7 +513,7 @@ class ExplorerWindow(QMainWindow):
         self.action_timer.stop()
         future = self.action_future
         self.action_future = None
-        self.action_status.clear()
+        self.statusBar().clearMessage()
         self.files.setReadOnly(False)
         self.update_item_actions()
         result, refresh_paths = future.result()
@@ -531,7 +535,7 @@ class ExplorerWindow(QMainWindow):
         if path_key(self.current_path) not in self.action_refresh_paths:
             self.update_preview_selection()
         self.action_refresh_paths.clear()
-        self.action_status.setText("Action complete" if result is None else result)
+        self.statusBar().showMessage("Action complete" if result is None else result, 5000)
 
     def navigate(self, path, history_position=None):
         self.preview_dock.set_item("")
@@ -614,6 +618,7 @@ class ExplorerWindow(QMainWindow):
         self.forward_action.setEnabled(self.history_position + 1 < len(self.history))
         self.up_action.setEnabled(bool(self.current_path) and str(Path(self.current_path).parent) != self.current_path)
         self.refresh_action.setEnabled(bool(self.current_path))
+        self.open_explorer_action.setEnabled(bool(self.current_path))
 
     def activate(self, index):
         source_index = self.model.mapToSource(index)
