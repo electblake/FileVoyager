@@ -448,6 +448,12 @@ class ExplorerWindow(QMainWindow):
             self.pack_dialog.deleteLater()
         dialog = PackToFolderDialog(self)
         self.pack_dialog = dialog
+        settings = self.preferences.settings
+        if settings.contains("actions/pack_folder_name"):
+            dialog.folder_name.setText(settings.value("actions/pack_folder_name", type=str))
+            dialog.folder_name.selectAll()
+        dialog.accepted.connect(lambda: settings.setValue(
+            "actions/pack_folder_name", dialog.folder_name.text()))
         dialog.accepted.connect(lambda: self.start_item_action(
             "Packing selected items…", pack_to_folder, paths,
             parent / dialog.folder_name.text(), dialog.copy_mode.isChecked(),
@@ -464,6 +470,12 @@ class ExplorerWindow(QMainWindow):
         dialog = PackToFolderDialog(self)
         dialog.setWindowTitle("Join to Folder")
         self.join_dialog = dialog
+        settings = self.preferences.settings
+        if settings.contains("actions/join_folder_name"):
+            dialog.folder_name.setText(settings.value("actions/join_folder_name", type=str))
+            dialog.folder_name.selectAll()
+        dialog.accepted.connect(lambda: settings.setValue(
+            "actions/join_folder_name", dialog.folder_name.text()))
         dialog.accepted.connect(lambda: self.start_item_action(
             "Joining selected folder contents…", join_to_folder, paths,
             parent / dialog.folder_name.text(), dialog.copy_mode.isChecked(),

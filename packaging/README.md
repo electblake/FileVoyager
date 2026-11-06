@@ -13,7 +13,7 @@ uv run --locked python -m unittest discover -s tests -v
 uv run python packaging\build.py 'C:\Users\shoji\AppData\Local\Programs\Inno Setup 6\ISCC.exe'
 ```
 
-Supply the actual installed compiler path. `pyproject.toml` supplies the wheel and installer version. `uv.lock` supplies all runtime versions and hashes. `uv export --locked` generates the installer requirements. The bootstrap zipapp contains only the installation script, platformdirs, and its license. Build products are ignored by Git. The output is `dist/installer/FileVoyager-Windows-x64-Setup-0.4.3.exe`.
+Supply the actual installed compiler path. `pyproject.toml` supplies the wheel and installer version. `uv.lock` supplies all runtime versions and hashes. `uv export --locked` generates the installer requirements. The bootstrap zipapp contains only the installation script, platformdirs, and its license. Build products are ignored by Git. The output is `dist/installer/FileVoyager-Windows-x64-Setup-0.4.4.exe`.
 
 ## Installation and updates
 
@@ -43,7 +43,7 @@ Silent installation: `/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /LOG="install.log
 | Qt PDF / WebEngine 6.12.0.140 | Transitive public PyPI dependencies installed with PySide6 |
 | qt-themes 0.4.1 | MIT-licensed theme palettes installed from a pinned PyPI wheel |
 | comtypes 1.4.17, NumPy 2.5.4, Pillow 13.0.0 | Public PyPI wheels installed with their native libraries, metadata and notices |
-| FileVoyager 0.4.2 | Locally built wheel, including the Spectra-derived processors and their license |
+| FileVoyager 0.4.4 | Locally built wheel, including the Spectra-derived processors and their license |
 | scikit-learn 1.9.1, SciPy 1.18.1 and their dependencies | Public PyPI wheels for vector comparisons and DBSCAN neighbor queries |
 | Windows Shell / COM / GDI | Operating-system APIs; not installed by Setup |
 
@@ -90,3 +90,5 @@ Release 0.4.1 fixes preview races during file operations and restores previews a
 Release 0.4.2 adds the Edit clipboard menu, live Paste availability, and cut-item dimming in Details, Grid, and the folder tree. All 127 tests passed before the version-only release changes, including partial-cut clipboard state and selection-expansion checks. The wheel matched all 36 tested source modules and the icon; dependency pins were unchanged. Bootstrap contents, all 17 hashed requirements, Inno compilation, installer product version, and SHA-256 checks passed. The installer remains unsigned; full Setup and upgrade/uninstall execution were not repeated.
 
 Release 0.4.3 fixes missing-file thumbnail requests and broken shortcut folder scans. Reused the recent 131-test pass, including the new eligibility and deleted-target regressions; no full-suite rerun was required for version and documentation changes. The release wheel matched all tested source modules and the icon; dependency pins were unchanged. Bootstrap contents, Inno compilation, installer product version, and SHA-256 checks passed. The installer remains unsigned; full Setup execution was not repeated. Shell extraction failures for existing unsupported or invalid media remain outside this fix.
+
+Release 0.4.4 remembers separate Pack to Folder and Join to Folder names through QSettings. All 19 item-action tests passed; a focused dialog check verified independent names, persisted settings reload, selected restored text, enabled OK, and cancellation preserving the saved name. The release wheel matched all 36 source modules and the icon; dependency pins were unchanged. Bootstrap contents, installer compilation, product version, and SHA-256 were verified. Testing was limited to affected areas as requested; full Setup execution was not repeated. The installer remains unsigned.

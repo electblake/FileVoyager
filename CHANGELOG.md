@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.4] - 2026-11-06
+
+### Added
+
+- Remembered separate last-used folder names for Pack to Folder and Join to Folder through QSettings. Restored names are selected for easy replacement, and cancelled edits leave the saved names unchanged.
+
 ## [0.4.3] - 2026-11-06
 
 ### Fixed
