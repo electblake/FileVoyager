@@ -13,7 +13,7 @@ from PySide6.QtGui import QIcon
 from support import QtCase
 from test_browser import image_result
 from filevoyager.link_drag import create_shortcuts
-from filevoyager.directory_tree import DirectoryTreeModel, path_key
+from filevoyager.directory_tree import DirectoryTreeModel, path_key, scan_directories
 from filevoyager.preferences import FolderPreferences
 from filevoyager.window import ExplorerWindow
 from filevoyager.file_model import directory_snapshot
@@ -21,6 +21,24 @@ from filevoyager.windows_shortcuts import folder_shortcut_targets
 
 
 class WindowsShortcutTests(QtCase):
+    def test_deleted_shortcut_target_remains_a_file_not_a_folder(self):
+        root = self.root / "broken-link"
+        root.mkdir()
+        target = root / "target"
+        target.mkdir()
+        with ThreadPoolExecutor(max_workers=1) as worker:
+            worker.submit(create_shortcuts, (target,), root).result()
+            target.rmdir()
+            records = worker.submit(directory_snapshot, str(root), (), 0, False, True).result()[0]
+            self.assertEqual(len(records), 1)
+            self.assertEqual(records[0].kind, "Shortcut")
+            self.assertEqual(records[0].folder_target, "")
+            self.assertEqual(worker.submit(scan_directories, str(root)).result(), [])
+            target.mkdir()
+            records = worker.submit(directory_snapshot, str(root), (), 0, False, True).result()[0]
+            link = next(record for record in records if record.name.endswith(".lnk"))
+            self.assertEqual(link.folder_target, str(target))
+
     def test_shortcut_cache_reuses_unchanged_links_and_plain_files_use_no_shell(self):
         root = self.root / "batch"
         root.mkdir()

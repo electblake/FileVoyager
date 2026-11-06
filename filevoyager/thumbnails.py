@@ -3,11 +3,19 @@
 from collections import OrderedDict, deque
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
+import os
 
 from PySide6.QtCore import QObject, QTimer, Signal
 from PySide6.QtGui import QIcon, QPixmap
 
 from filevoyager.models import MEDIA_EXTENSIONS
+
+
+def load_existing_thumbnail(load_image, path, pixels):
+    """Check queued files on the worker before asking the Shell to extract."""
+    if not os.path.isfile(path):
+        return None
+    return load_image(path, pixels, pixels)
 
 
 @dataclass(frozen=True)
@@ -132,10 +140,15 @@ class ThumbnailController(QObject):
         self.grid.viewport().update()
 
     def dispatch(self):
+        source = self.model.sourceModel()
         while self.pending and len(self.active) < 2:
             key = self.pending.popleft()
+            index = source.index(key.path)
+            if (not index.isValid() or source.isDir(index)
+                    or source.file_metadata(index) != (key.modified_ms, key.file_size)):
+                continue
             self.requested.add(key)
-            future = self.executor.submit(self.load_image, key.path, key.pixels, key.pixels)
+            future = self.executor.submit(load_existing_thumbnail, self.load_image, key.path, key.pixels)
             self.active[future] = (self.generation, key)
         self.peak_active = max(self.peak_active, len(self.active))
         if self.active:
@@ -153,6 +166,8 @@ class ThumbnailController(QObject):
             image = future.result()
             if generation != self.generation:
                 self.stale_results += 1
+                continue
+            if image is None:
                 continue
             self.requested.discard(key)
             self.model.cache.put(key, image)

@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Kept broken Windows shortcuts visible without treating missing targets as navigable folders or failing folder scans.
+- Skipped missing files before thumbnail extraction on background workers, and discarded queued requests for removed or changed directory entries.
+
 ## [0.4.2] - 2026-11-01
 
 ### Added
